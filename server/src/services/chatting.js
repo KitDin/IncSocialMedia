@@ -5,6 +5,19 @@ import {
 import { pool } from "../db/db.js";
 import { ListFriend } from "./frient-ship.js";
 
+export async function getConversationById(conId) {
+  try {
+    const [conversation] = await pool.query(
+      "select * from __CONVERSATIONS where con_id=?",
+      [conId]
+    );
+    return conversation.length > 0 ? conversation : null;
+  } catch (error) {
+    console.error("Error fetching conversation by ID:", error); // Log lỗi cụ thể
+    throw new Error("Unable to fetch conversation");
+  }
+}
+
 export const checkOrCreateConversation = async (
   userID1,
   userID2,
@@ -174,4 +187,13 @@ export async function searchConversation(searchQuery, userId) {
   }
 }
 
-
+export async function deleteConversationById(conId) {
+  try {
+    const deleteSql = "delete from __CONVERSATIONS where CON_ID =?;";
+    const [isDelete] = await pool.query(deleteSql, [conId]);
+    return isDelete.affectedRows > 0 ? true : false;
+  } catch (error) {
+    console.error("Error deleting conversation:", error);
+    return false;
+  }
+}

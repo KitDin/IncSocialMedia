@@ -2,6 +2,8 @@ import {
   getConversationOfAUser,
   getMessages,
   checkOrCreateConversation,
+  deleteConversationById,
+  getConversationById,
 } from "../services/chatting.js";
 import { decodeBase64 } from "./polices/police.uid.js";
 
@@ -116,8 +118,12 @@ export async function createComversation(req, res) {
 export async function deleteConversation(req, res) {
   try {
     const { conversationId } = req.body;
-    res.json({ conversationId });
+    const isDelete = await deleteConversationById(conversationId);
+    if (isDelete) {
+      return res.json({ status: true, message: "Đã xoá thành công!" });
+    }
+    return res.json({ status: false, message: "Thực hiên xoá thất bại!" });
   } catch (error) {
-    res.json({ status: true, error });
+    res.json({ status: false, error });
   }
 }
