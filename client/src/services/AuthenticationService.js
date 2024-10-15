@@ -80,5 +80,8 @@ export default {
   },
   createConversation(idCurren, userCreate) {
     return Api().post(`message/${idCurren}`, userCreate);
+  },
+  deleteConversation(idCurren, conversationId) {
+    return Api().put(`message/${idCurren}`, conversationId);
   }
 };

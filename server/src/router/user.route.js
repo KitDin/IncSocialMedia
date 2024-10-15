@@ -73,4 +73,4 @@ router
   .route("/message/:id")
   .get(getConversationsOffAUser)
   .post(createComversation)
-  .delete(deleteConversation);
+  .put(deleteConversation);

@@ -37,7 +37,8 @@
                         </div>
                         <div class="three-dots" @click.stop="toggleOptionComponent(conversation.CON_ID)">
                             <i class="bi bi-three-dots-vertical icon-three-dot"></i>
-                            <OptionComponent class="option-message" v-if="activeConversationId === conversation.CON_ID"
+                            <OptionComponent class="option-message"
+                                v-show="activeConversationId === conversation.CON_ID"
                                 :conversationId="conversation.CON_ID" :style="optionComponentStyles"
                                 :conversationTime="conversation.CON_TIMECREATE" :formatTimeConversation="formatTime"
                                 @delete-conversation="handleDeleteConversation" />
@@ -255,11 +256,14 @@ export default {
                 }
             }
         },
-        handleDeleteConversation(conversationId) {
+        async handleDeleteConversation(conversationId) {
             // Xử lý logic xóa cuộc trò chuyện ở đây
-            console.log("Xóa cuộc trò chuyện có ID: ", conversationId);
-            // Bạn có thể gọi API hoặc xóa khỏi danh sách cuộc trò chuyện ở đây 
-
+            console.log({ "conversationId": conversationId })
+            const delCon = (await AuthenticationService.deleteConversation(this.currentUserId, { "conversationId": conversationId })).data;
+            if (delCon.status) {
+                this.conversations = (await AuthenticationService.getConversations(this.currentUserId)).data;
+                this.activeConversationId = null;
+            } else alert("Xoá thất bại rồi")
         },
         async createNewConversation(conId, userReceiv) {
             this.getAllMessagesInAConversation(conId, userReceiv)
