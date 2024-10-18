@@ -20,7 +20,8 @@
                         <div v-html="error" class="error"></div>
 
                         <div class="mb-2">
-                            <button @click.prevent @click="login()" class="btn btn-primary fw-bold w-100 bg-gradient">Sign
+                            <button @click.prevent @click="login()"
+                                class="btn btn-primary fw-bold w-100 bg-gradient">Sign
                                 Up</button>
                         </div>
                         <div class="mb-3 text-center">
@@ -64,6 +65,7 @@ export default {
             }).then(response => {
                 this.error = response.data.error;
                 this.status = response.data.status;
+                localStorage.setItem("token", response.data.assetToken);
                 if (response.data.status === "successful" && response.status === 200) {
                     this.user = response.data.user.USER_Id,
                         this.$router.push(

@@ -16,6 +16,11 @@ import {
   ListFriend,
 } from "../services/frient-ship.js";
 
+import dotenv from "dotenv";
+dotenv.config();
+
+import jwt from "jsonwebtoken";
+
 export async function getUsersController(req, res) {
   const users = await getUsers();
   res.send(users);
@@ -161,15 +166,42 @@ export async function registerInfor(req, res) {
   console.log(req.body, file);
 }
 
+// export async function login(req, res) {
+//   try {
+//     const { email, password } = req.body;
+//     if (await checkAccout_Password(email, email, password)) {
+//       const getid = await getUser(email, email);
+//       return res.json({
+//         status: "successful",
+//         mess: `/home/`,
+//         user: getid,
+//       });
+//     } else {
+//       return res.json({
+//         status: "error",
+//         error: "Your username or password is not correct",
+//       });
+//     }
+//   } catch (error) {
+//     return res.json({
+//       status: error,
+//     });
+//   }
+// }
+
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
     if (await checkAccout_Password(email, email, password)) {
-      const getid = await getUser(email, email);
+      const [getid] = await getUser(email, email);
+      const token = jwt.sign(getid, process.env.JSON_WEB_TOKEN_KEY, {
+        expiresIn: "1800s",
+      });
       return res.json({
         status: "successful",
         mess: `/home/`,
         user: getid,
+        assetToken: token,
       });
     } else {
       return res.json({

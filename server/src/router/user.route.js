@@ -34,8 +34,11 @@ import {
   createComversation,
   deleteConversation,
 } from "../controllers/message.controller.js";
+import middlewareController from "../middleware/test.middleware.js";
 
 export const router = express.Router();
+
+router.all("*", middlewareController.testMiddleware);
 
 router.route("/").get(getUsersController);
 router.route("/:id").get(getUserController);

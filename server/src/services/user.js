@@ -15,7 +15,10 @@ export async function checkAccout_Password(accountName, email, password) {
 
 export async function getUsers() {
   const [row] = await pool.query(
-    " select * from __USER U left join __USER_INFOR UI on U.USER_Id=UI.USER_Id"
+    ` select U.USER_Id, U.USER_AccountName, U.USER_Email, U.USER_Status, 
+           UI.USER_FirstName, UI.USER_SubName, UI.USER_NickName, 
+           UI.USER_NumberPhone, UI.USER_AvatarURL, UI.USER_Cover, 
+           UI.USER_BrithDay from __USER U left join __USER_INFOR UI on U.USER_Id=UI.USER_Id`
   );
   return row;
 }
@@ -23,13 +26,16 @@ export async function getUsers() {
 export async function getUser(username, email) {
   const [row] = await pool.query(
     `
-  select * 
-  from __USER 
+  select U.USER_Id, U.USER_AccountName, U.USER_Email, UI.USER_Status, 
+           UI.USER_FirstName, UI.USER_SubName, UI.USER_NickName, 
+           UI.USER_NumberPhone, UI.USER_AvatarURL, UI.USER_Cover, 
+           UI.USER_BrithDay  
+  from __USER U left join __USER_INFOR UI on U.USER_Id=UI.USER_Id
   where USER_AccountName = ? or USER_Email = ?
   `,
     [username, email]
   );
-  return row[0];
+  return row;
 }
 
 export async function getUserById(id) {
