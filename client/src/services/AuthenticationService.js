@@ -1,4 +1,5 @@
 import Api from "./Api";
+import verifyAPI from "./VerifyAPI";
 
 export default {
   register(credentials) {
@@ -7,6 +8,7 @@ export default {
   login(credentials) {
     return Api().post("login", credentials);
   },
+
   getUser(id) {
     return Api().get(`${id}`);
   },
@@ -83,5 +85,8 @@ export default {
   },
   deleteConversation(idCurren, conversationId) {
     return Api().put(`message/${idCurren}`, conversationId);
+  },
+  verifyToken(token) {
+    return verifyAPI().post(`/verifytoken`, { token });
   }
 };

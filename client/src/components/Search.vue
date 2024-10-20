@@ -1,5 +1,5 @@
 <template>
-    <div class="Search-Frame">
+    <div class="Search-Frame" :class="isOpen ? 'animationOpen' : 'animationClose'">
         <h2 class="h2">Search</h2>
         <input v-model="searchQuery" @input="handleInput" type="text" class="inputSearch" placeholder="Search">
         <div class="search-loader" v-if="searching">
@@ -104,15 +104,15 @@ export default {
             }
         },
         goProfilePersonal() {
-            this.$router.push(`/profile/${this.user_personal}`)
+            this.$router.push(`/profile`)
         },
         goProfileOther(idother) {
-            this.$router.push(`/profile/${this.user_personal}/${idother.USER_Id}`)
+            this.$router.push(`/profile/${idother.USER_Id}`)
         }, goToProfile(id) {
             if (id === this.user_personal) {
                 this.goProfilePersonal();
             } else {
-                const targetRoute = `/profile/${this.user_personal}/${id}`;
+                const targetRoute = `/profile/${id}`;
                 if (this.$route.path !== targetRoute) {
                     this.$router.push(targetRoute);
                 }
@@ -120,24 +120,38 @@ export default {
         }
     }, async mounted() {
         this.user = (await AuthenticationService.getUsers()).data
+    }, props: {
+        isOpen: {
+            type: Boolean
+        }
     }
 }
 
 </script>
 
 <style scoped>
+.animationOpen {
+    -webkit-animation: scale-in-hor-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: scale-in-hor-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+.animationClose {
+    -webkit-animation: scale-out-hor-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+    animation: scale-out-hor-left 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+}
+
 .Search-Frame {
     position: fixed;
     top: 0;
-    left: 60px;
+    left: 74px;
     height: 100%;
     width: 400px;
     background-color: white;
-    transition: 0.5s ease;
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
     padding: 32px 24px 0 24px;
     z-index: 999;
+
     box-shadow: rgba(100, 100, 111, 0.2) 5px 7px 12px 0px;
 
     .h2 {
@@ -349,6 +363,78 @@ export default {
 
     100% {
         transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes scale-in-hor-left {
+    0% {
+        -webkit-transform: scaleX(0);
+        transform: scaleX(0);
+        -webkit-transform-origin: 0% 0%;
+        transform-origin: 0% 0%;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+        -webkit-transform-origin: 0% 0%;
+        transform-origin: 0% 0%;
+        opacity: 1;
+    }
+}
+
+@keyframes scale-in-hor-left {
+    0% {
+        -webkit-transform: scaleX(0);
+        transform: scaleX(0);
+        -webkit-transform-origin: 0% 0%;
+        transform-origin: 0% 0%;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+        -webkit-transform-origin: 0% 0%;
+        transform-origin: 0% 0%;
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes scale-out-hor-left {
+    0% {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+        -webkit-transform-origin: 0 0;
+        transform-origin: 0 0;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleX(0);
+        transform: scaleX(0);
+        -webkit-transform-origin: 0 0;
+        transform-origin: 0 0;
+        opacity: 1;
+    }
+}
+
+@keyframes scale-out-hor-left {
+    0% {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+        -webkit-transform-origin: 0 0;
+        transform-origin: 0 0;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleX(0);
+        transform: scaleX(0);
+        -webkit-transform-origin: 0 0;
+        transform-origin: 0 0;
+        opacity: 1;
     }
 }
 </style>

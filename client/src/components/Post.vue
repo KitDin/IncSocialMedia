@@ -1,5 +1,5 @@
 <template>
-    <div class="frame-post" v-if="!showPostBar">
+    <div class="frame-post">
         <div class="prevent" @click="showPost()"></div>
         <form @submit.prevent="submitForm" method="POST" enctype="multipart/form-data">
 
@@ -35,7 +35,7 @@
                                 <div class="selected" @click="showSelect"><i class="icon-selected"
                                         :class="selected.icon"></i>
                                     {{
-        selected.label }} <i class="bi bi-chevron-down"></i></div>
+                                        selected.label }} <i class="bi bi-chevron-down"></i></div>
 
                                 <div v-if="showSelectFrame" class="select" v-for="option in options"
                                     :key="option.label">
@@ -51,7 +51,7 @@
                                 class="more-text" :oninput="change()"></textarea>
                             <p class="hashtag">#</p>
                             <p class="limit-char" :class="!changeColorLimit ? `color-limit` : `change-color-limit`">{{
-        char
+                                char
                                 }}/2,200</p>
                         </div>
                     </div>
@@ -68,7 +68,7 @@ import AuthenticationService from '../services/AuthenticationService';
 export default {
     data() {
         return {
-            userid: this.$router.history.current.params.id,
+            userid: '',
             imageUrl: [],
             user: [],
             changeColorLimit: false,
@@ -126,7 +126,8 @@ export default {
             try {
                 await AuthenticationService.uploadImgPost(formData);
                 this.imageUrl = [];
-                this.textarea = ''
+                this.textarea = '';
+                this.$emit('closePost');
             } catch (error) {
                 console.log(error);
             }
@@ -148,7 +149,7 @@ export default {
             URL.revokeObjectURL(temp_url);
             return uuid.substr(uuid.lastIndexOf('/') + 1);
         }, showPost() {
-            this.showPostBar = true;
+            this.$emit('closePost');
         }, showSelect() {
             this.showSelectFrame = !this.showSelectFrame
         }, chooseOption(option) {
@@ -160,14 +161,30 @@ export default {
             this.char = value.length;
         }
     }, async mounted() {
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            // Nếu có token, có thể gửi yêu cầu đến máy chủ để xác thực token
+            const response = await AuthenticationService.verifyToken(token);
+            if (response.status !== 200) {
+                // Nếu token không hợp lệ, điều hướng đến trang đăng nhập
+                localStorage.removeItem("token");
+                this.$router.push("/");
+            }
+            this.userid = response.data.userId
+        } else {
+            // Nếu không có token, điều hướng đến trang đăng nhập
+            this.$router.push("/");
+        }
         this.user = (await AuthenticationService.getUser(this.userid)).data
+        console.log(this.user)
     }
 }
 </script>
 
 <style>
 .frame-post .prevent {
-    width: 105%;
+    width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
 }
@@ -181,6 +198,7 @@ export default {
     text-align: center;
     justify-items: center;
     cursor: pointer;
+    position: fixed;
 }
 
 .frame-select .selected {
@@ -222,11 +240,11 @@ export default {
 }
 
 .frame-post {
-    width: 1444px;
+    width: 100%;
     height: 750px;
-    left: -10px;
-    top: -127%;
-    position: relative;
+    top: 0;
+    left: 0;
+    position: fixed;
     z-index: 1000;
 }
 

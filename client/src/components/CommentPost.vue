@@ -26,8 +26,8 @@
                             <img @click="goProfile(comment.comment.USER_Id)" class="user-Avatar"
                                 :src="loadImgUser(comment.comment)" alt="">
                             <p @click="goProfile(comment.comment.USER_Id)" class="user-name">{{
-                    comment.comment.USER_NickName
-                }}</p>
+                                comment.comment.USER_NickName
+                                }}</p>
                             <p class="content-comment">{{ comment.comment.comment_Content }}</p>
                             <div class="reply">
                                 <p class="time">{{ timeRequest(comment.comment.comment_Time) }}</p>
@@ -40,7 +40,7 @@
                             <hr>
                             <p class="view-option" v-if="!comment.isShowView" @click="showView(comment)">View replies
                                 ({{
-                    comment.reply.length }})
+                                    comment.reply.length }})
                             </p>
                             <p class="view-option" v-if="comment.isShowView" @click="showView(comment)">Hide</p>
                             <div class="user" v-if="comment.isShowView" v-for="replys in comment.reply">
@@ -49,9 +49,9 @@
                                 <p @click="goProfile(replys.USER_Id)" class="user-name">{{ replys.USER_NickName }}
                                 </p>
                                 <p class="content-comment" style="width: 55%;"> <span class="tag-name">@{{
-                    replys.reply_to.USER_NickName
-                }}</span> {{
-                        replys.CommentReply_Content }}</p>
+                                    replys.reply_to.USER_NickName
+                                        }}</span> {{
+                                            replys.CommentReply_Content }}</p>
                                 <div class="reply-more">
                                     <p class="time">{{ timeRequest(replys.CommentReply_Time) }}</p>
                                     <label for="textComment" class="btn-reply"
@@ -211,17 +211,17 @@ export default {
             try {
 
                 if (post.isHeartFilled) {
-                    console.log("like");
 
                     await AuthenticationService.like(this.userid, {
                         POST_Id: post.content.POST_Id
                     });
+                    this.fetchComments()
                 } else if (!post.isHeartFilled) {
-                    console.log("un like");
 
                     await AuthenticationService.unlike(this.userid, {
                         POST_Id: post.content.POST_Id
                     });
+                    this.fetchComments()
                 }
 
                 const [updatedPostData] = (await AuthenticationService.APost(post.content.POST_Id)).data;
@@ -236,9 +236,36 @@ export default {
                 }
                 this.$emit('updatePost', this.postId)
             } catch (error) { }
-        }, isContentOverFifteenWords(content) {
+        },
+
+        isContentOverFifteenWords(content) {
             const words = content.split(' '); // Tách chuỗi thành mảng các từ
             return words.length > 15; // Kiểm tra xem mảng có nhiều hơn 15 từ hay không
+        },
+
+        async fetchComments() {
+            try {
+                const commentsData = (await AuthenticationService.getComment(this.postId.content.POST_Id)).data;
+                this.comments = commentsData.map(comment => {
+                    return {
+                        ...comment,
+                        isShowView: false, // Add your property or any transformations you need
+                    };
+                });
+            } catch (error) {
+                console.error("Error fetching comments:", error);
+            }
+        },
+
+        startPolling() {
+            this.polling = setInterval(async () => {
+                await this.fetchComments();  // Refresh comments reactively
+            }, 15000); // Poll every 1 second (adjust as needed)
+        },
+
+        // Stops the polling when necessary
+        stopPolling() {
+            clearInterval(this.polling); // Clear the interval
         }
     }, props: {
         userid: String,
@@ -248,21 +275,14 @@ export default {
         timeRequest: Function,
         goProfile: Function
     }, async mounted() {
-        try {
-            const commentsData = (await AuthenticationService.getComment(this.postId.content.POST_Id)).data;
-            this.comments = commentsData.map(comment => {
-                return {
-                    ...comment,
-                    isShowView: false,
-                }
-            })
-        } catch (error) {
-            console.error(error);
-        }
+        this.fetchComments(); // Fetch comments initially when the component is mounted
+        this.startPolling();
     }, watch: {
         textComment(value) {
             this.char = value.length;
         },
+    }, beforeDestroy() {
+        this.stopPolling();  // Ensure polling stops when the component is destroyed
     }
 }
 </script>
@@ -461,6 +481,8 @@ hr {
     padding: 12px 22px 8px 22px;
     font-size: 24px;
     -webkit-text-stroke: 0.7px;
+    cursor: pointer;
+    transition: all 0.5 ease;
 }
 
 .excute .icons .icon {

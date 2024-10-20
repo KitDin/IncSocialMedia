@@ -11,7 +11,7 @@ Vue.use(Router);
 
 const routes = [
   {
-    path: "/home/:id",
+    path: "/home",
     name: "Home",
     component: HomePage,
     props: true
@@ -27,9 +27,9 @@ const routes = [
     component: Information
   },
   { path: "/", name: "Login", component: Login },
-  { path: "/messages/:id", name: "Messages", component: MessagesPage },
+  { path: "/messages", name: "Messages", component: MessagesPage },
   {
-    path: "/profile/:id",
+    path: "/profile",
     name: "Profile",
     component: Profile,
     children: [{ path: ":idother", name: "ProfileOther", component: Profile }]

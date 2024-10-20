@@ -69,10 +69,7 @@ export default {
                 if (response.data.status === "successful" && response.status === 200) {
                     this.user = response.data.user.USER_Id,
                         this.$router.push(
-                            {
-                                name: `Home`,
-                                params: { id: this.user }
-                            }
+                            "/home"
                         )
                 } console.log(response);
             });

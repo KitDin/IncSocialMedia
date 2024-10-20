@@ -57,7 +57,7 @@ export default {
         return {
             loadingAccept: false,
             user_personal: [],
-            userid: this.$router.history.current.params.id,
+            userid: '',
             users: []
         }
     },
@@ -66,6 +66,7 @@ export default {
         Footer
     }, methods: {
         logout() {
+            localStorage.removeItem("token");
             this.$router.push('/')
         },
         loadimg(user) {
@@ -117,12 +118,27 @@ export default {
             }
         },
         goProfilePersonal() {
-            this.$router.push(`/profile/${this.userid}`)
+            this.$router.push(`/profile`)
         },
         goProfileOther(idother) {
-            this.$router.push(`/profile/${this.userid}/${idother.USER_Id}`)
+            this.$router.push(`/profile/${idother.USER_Id}`)
         }
     }, async mounted() {
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            // Nếu có token, có thể gửi yêu cầu đến máy chủ để xác thực token
+            const response = await AuthenticationService.verifyToken(token);
+            if (response.status !== 200) {
+                // Nếu token không hợp lệ, điều hướng đến trang đăng nhập
+                localStorage.removeItem("token");
+                this.$router.push("/");
+            }
+            this.userid = response.data.userId
+        } else {
+            // Nếu không có token, điều hướng đến trang đăng nhập
+            this.$router.push("/");
+        }
         this.user_personal = (await AuthenticationService.getUser(this.userid)).data;
         this.users = (await AuthenticationService.getUserRequest(this.userid)).data;
     }

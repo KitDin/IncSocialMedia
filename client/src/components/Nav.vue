@@ -1,60 +1,52 @@
 <template>
-    <div class="navcol" :class="is_expanded ? 'is_expanded' : 'navcol-246'">
-        <img class="img" src="../assets/img_logo/logo.png" alt="">
-        <div>
+    <div class="navcol" :class="is_expanded ? 'is_expanded' : ''">
+        <div class="normal-setup">
+            <img class="img" src="../assets/img_logo/logo.png" alt="">
+
             <ul class="navmenu">
-                <li class="navli" v-for="link in links" :key="link.id" :class="{ active: link.link_to === $route.name }"
+                <li class="navli" v-for="link in links" :key="link.id"
+                    :class="{ active: link.link_to === $route.name, activeLine: link.status }"
                     @click="handleItemClick(link)" style="cursor: pointer;">
-                    <div class="nava">
-                        <i v-if="link.icon" ref="i" class="icon" :class="getActiveIconClass(link)"></i>
-                        <img v-else :src="user.USER_AvatarURL != null ? loadimg(user) : ''" alt="" class="avatar">
-                        <p class="text" v-if="!is_expanded">{{ link.text }}</p>
-                    </div>
+                    <!-- <RouterLink to="/profile" /> -->
+                    <i v-if="link.icon" ref="i" class="icon" :class="getActiveIconClass(link)"></i>
+                    <img v-else :src="user.USER_AvatarURL != null ? loadimg(user) : ''" alt="" class="avatar">
+                    <p class="text" v-if="!is_expanded">{{ link.text }}</p>
                 </li>
             </ul>
         </div>
-        <div class="more-setup ">
-            <div class="prevent" @click="shownav()" v-if="show_nav"></div>
-            <div class="nav-more">
-                <div class="set-up" v-if="show_nav">
-                    <ul class="set-up-rule">
-                        <li class="set-up-rule-item" style="cursor: pointer;" v-for="set_up_item in set_up_items"
-                            :key="set_up_item">
-                            <i class="icon" :class="set_up_item.icon"></i>
-                            <p class="text"> {{ set_up_item.text }} </p>
-                        </li>
-                    </ul>
-                    <div class="set-up-line"></div>
-                    <ul class="set-up-logout" @click="logout">
-                        <li style="cursor: pointer;">Log out</li>
-                    </ul>
-                </div>
-            </div>
 
-            <ul class="navmenu">
-                <li class="navli">
-                    <div class="nava" @click="shownav()" style="cursor: pointer;">
-                        <i class="icon bi bi-three-dots-vertical"></i>
-                        <p class="text">More</p>
-                    </div>
-                </li>
-            </ul>
+        <RouterLink class="more-setup" to="/profile">
+            <i class="icon bi bi-three-dots-vertical"></i>
+            <p class="text">More</p>
+        </RouterLink>
+        <div class="prevent" @click="shownav()" v-if="show_nav"></div>
+
+        <div class="nav-more" v-if="show_nav">
+            <div class="set-up">
+                <ul class="set-up-rule">
+                    <li class="set-up-rule-item" style="cursor: pointer;" v-for="set_up_item in set_up_items"
+                        :key="set_up_item">
+                        <i class="icon" :class="set_up_item.icon"></i>
+                        <p class="text"> {{ set_up_item.text }} </p>
+                    </li>
+                </ul>
+                <div class="set-up-line"></div>
+                <ul class="set-up-logout" @click="logout">
+                    <li style="cursor: pointer;">Log out</li>
+                </ul>
+            </div>
         </div>
         <div class="prevent2" v-if="showSearchBar" @click="showpreventsearch()"></div>
-        <transition name="search-transition" appear>
-            <Search v-if="is_expanded && showSearchBar" />
-        </transition>
 
-        <transition name="search-transition" appear>
-            <Post v-if="showPostBar" />
-        </transition>
+
+        <Search v-if="is_expanded && showSearchBar" :isOpen="showSearchBar"
+            :class="!showPostBar ? 'animationClosePar' : ''" />
+
+        <Post class="componentPost" v-show="showPostBar" @closePost="closePost" />
     </div>
 </template>
 
 <script>
-import ref from 'vue'
-import Vue from "vue";
-
 import AuthenticationService from '../services/AuthenticationService';
 import { RouterLink } from 'vue-router'
 import Search from './Search.vue'
@@ -66,16 +58,16 @@ export default {
         return {
             is_expanded: false,
             show_nav: false,
-            userid: this.$router.history.current.params.id,
+            userid: '',
             user: [],
             showPostBar: false,
             showSearchBar: false,
             links: [
                 { id: 1, icon: "bi bi-house-door", icon_fill: "bi bi-house-fill", text: "Home", link_to: "Home" },
-                { id: 2, icon: "bi bi-search-heart", icon_fill: "bi bi-search-heart-fill", text: "Search", link_to: null },
+                { id: 2, icon: "bi bi-search-heart", icon_fill: "bi bi-search-heart-fill", text: "Search", link_to: null, status: false },
                 { id: 3, icon: "bi bi-chat-dots", icon_fill: "bi bi-chat-fill", text: "Messages", link_to: "Messages" },
                 // { id: 4, icon: "bi bi-heart", icon_fill: "bi bi-heart-fill", text: "Notifications", link_to: null },
-                { id: 5, icon: "bi bi-plus-circle", icon_fill: "bi bi-plus-circle-fill", text: "Create", link_to: null },
+                { id: 5, icon: "bi bi-plus-circle", icon_fill: "bi bi-plus-circle-fill", text: "Create", link_to: null, status: false },
                 { id: 6, text: "Profile", avatar: this.user ? this.user.USER_AvatarURL : '', link_to: "Profile" },
             ],
             set_up_items: [
@@ -87,9 +79,15 @@ export default {
             ],
         };
     }, methods: {
+        closePost() {
+            this.showPostBar = false;
+            this.links[3].status = !this.links[3].status
+            console.log(">>>", this.links[3].status)
+        },
         handleItemClick(link) {
             if (link.id === 2) {
                 this.showSearchBar = !this.showSearchBar
+                link.status = !link.status
                 if (!this.is_expanded) {
                     this.is_expanded = !this.is_expanded
                 } else if (this.is_expanded) {
@@ -103,10 +101,11 @@ export default {
                 }
             } else if (link.id === 5) {
                 this.showPostBar = !this.showPostBar
+                link.status = !link.status
             } else {
                 this.$router.push({
                     name: link.link_to,
-                    params: { id: this.userid }
+                    // params: { id: this.userid }
                 }).catch(err => {
                     if (
                         err.name !== 'NavigationDuplicated' &&
@@ -121,6 +120,7 @@ export default {
             return link.link_to === this.$route.name ? link.icon_fill : link.icon;
         },
         logout() {
+            localStorage.removeItem("token");
             this.$router.push('/')
         },
         shownav() {
@@ -139,6 +139,21 @@ export default {
             }
         }
     }, async mounted() {
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            // Nếu có token, có thể gửi yêu cầu đến máy chủ để xác thực token
+            const response = await AuthenticationService.verifyToken(token);
+            if (response.status !== 200) {
+                // Nếu token không hợp lệ, điều hướng đến trang đăng nhập
+                localStorage.removeItem("token");
+                this.$router.push("/");
+            }
+            this.userid = response.data.userId
+        } else {
+            // Nếu không có token, điều hướng đến trang đăng nhập
+            this.$router.push("/");
+        }
         this.user = (await AuthenticationService.getUser(this.userid)).data;
         // console.log(this.links);
     },
@@ -146,7 +161,9 @@ export default {
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
+
+
 .prevent2 {
     width: 5000%;
     height: 100%;
@@ -169,7 +186,7 @@ export default {
 
 .text {
     display: inline;
-    transition: 0.0s linear;
+    transition: all 0.5s ease;
 }
 
 .navcol-246 {
@@ -332,7 +349,7 @@ export default {
     z-index: 999999;
 
     .text {
-        font-size: 0;
+        display: none;
         transition: 0.5s ease-in-out;
     }
 
@@ -348,7 +365,7 @@ export default {
         .navli {
             display: block;
             width: 100%;
-            height: 100%;
+            
             transition: 0.5s linear;
 
         }
@@ -455,4 +472,135 @@ export default {
     object-fit: cover;
     margin: 8px;
 }
+</style> -->
+
+<style>
+.prevent2 {
+    width: 5000%;
+    height: 100%;
+    position: fixed;
+    top: 0px;
+    z-index: -8888888888888888888888888888888;
+    transition: 0.1s linear;
+}
+
+.prevent3 {
+    width: 5000%;
+    height: 100%;
+    position: fixed;
+    top: 0px;
+    left: 0;
+    z-index: -1;
+    background-color: black;
+    opacity: 0.5;
+}
+
+
+
+.navcol {
+    height: 100%;
+    position: fixed;
+    left: 0;
+    padding: 8px 12px 20px;
+    border-right: 1px solid silver;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 999;
+    width: 246px;
+    transition: 0.2s ease-in-out;
+}
+
+.navcol .normal-setup .img {
+    width: 56px;
+    /* height: 32px; */
+    margin: 25px 12px 35px 12px;
+    transition: all 0.2s ease;
+}
+
+
+.navcol .normal-setup ul {
+    padding: 0;
+}
+
+.navcol .more-setup,
+.navcol .normal-setup ul li {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 17px;
+    flex-direction: row;
+    padding: 8px 12px;
+    margin: 2px 0;
+    height: 49px;
+}
+
+.navcol .more-setup p,
+.navcol .normal-setup ul li p {
+    margin: 0;
+}
+
+.navcol .more-setup i,
+.navcol .normal-setup ul li i {
+    font-size: 22px;
+    width: 26px;
+}
+
+.more-setup:hover,
+ul li:hover {
+    background-color: rgba(192, 192, 192, 0.304);
+    border-radius: 8px;
+}
+
+.navcol .normal-setup ul li:hover i {
+    font-size: 26px;
+}
+
+
+.navcol .normal-setup ul li .avatar {
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    object-fit: cover;
+    margin: 6px 0;
+}
+
+.more-setup {
+    color: black;
+    text-decoration: none;
+}
+
+.is_expanded {
+    width: 74px;
+    height: 100%;
+    position: fixed;
+    z-index: 999999;
+    transition: 0.2s ease-in-out;
+}
+
+.is_expanded .normal-setup .img {
+    width: 30px;
+    margin: 25px 12px 49.7px 12px;
+    transition: all 0.2s ease;
+}
+
+
+.is_expanded .more-setup p {
+    display: none;
+}
+
+.active {
+    background-color: silver;
+    border-radius: 8px;
+}
+
+.activeLine {
+    border: 1px silver solid;
+    border-radius: 8px;
+}
+
+/* .componentPost {
+    position: fixed;
+    top: 0;
+} */
 </style>

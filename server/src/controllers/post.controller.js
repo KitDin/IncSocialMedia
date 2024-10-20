@@ -62,7 +62,7 @@ export async function getPostsOfUsers(req, res) {
 
 export async function likePost(req, res) {
   try {
-    const id = req.params.id;
+    const id = req.user.USER_Id;
     const { POST_Id } = req.body;
     const check = await like(id, POST_Id);
     if (check) {
@@ -85,7 +85,7 @@ export async function likePost(req, res) {
 
 export async function unlikePost(req, res) {
   try {
-    const id = req.params.id;
+    const id = req.user.USER_Id;
     const { POST_Id } = req.body;
     const check = await unlike(id, POST_Id);
     if (check) {

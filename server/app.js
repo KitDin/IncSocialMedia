@@ -7,6 +7,7 @@ import { router } from "./src/router/user.route.js";
 import { socket_server } from "./src/socket/server.socket.js";
 import { routerModerate } from "./src/router/moderate.route.js";
 import { io } from "./src/socket/socket.io.js";
+import { routerToken } from "./src/router/token.js";
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ app.use(express.json());
 
 app.use("/api/users/", router);
 app.use("/moderate/text", routerModerate);
-
+app.use("/token", routerToken);
 socket_server(io(server));
 server.listen(process.env.POST, () => {
   console.log(`Server is running on post ${process.env.POST}`);

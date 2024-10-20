@@ -28,6 +28,7 @@ export async function getUsersController(req, res) {
 
 export async function getUserController(req, res) {
   const id = req.params.id;
+  // const id = req.user.USER_Id;
   const user = await getUserById(id);
   const friendRequests = await getFullInforUserAllUser(user.USER_Id);
   const isSender = await isSenderRequest(user.USER_Id);
@@ -195,7 +196,7 @@ export async function login(req, res) {
     if (await checkAccout_Password(email, email, password)) {
       const [getid] = await getUser(email, email);
       const token = jwt.sign(getid, process.env.JSON_WEB_TOKEN_KEY, {
-        expiresIn: "1800s",
+        expiresIn: "1d",
       });
       return res.json({
         status: "successful",

@@ -47,7 +47,7 @@ import { decodeBase64 } from "./polices/police.uid.js";
 // }
 
 export async function getConversationsOffAUser(req, res) {
-  const userId = req.params.id; // Lấy ID người dùng từ URL (params)
+  const userId = req.user.USER_Id; // Lấy ID người dùng từ URL (params)
   const encodedConversationID = req.query.cid; // Lấy conversation ID đã mã hóa từ query string
 
   const page = parseInt(req.query.page, 10) || 1;

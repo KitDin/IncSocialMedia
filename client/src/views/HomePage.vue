@@ -8,7 +8,7 @@
                 <div class="HC-Post-infor">
                     <img @click="goProfile(post.content.USER_Id)" :src="loadimg(post.content)" class="avatar">
                     <p @click="goProfile(post.content.USER_Id)" class="HC-Post-username name1"> {{
-                post.content.USER_NickName }} <span class="username-time">•
+                        post.content.USER_NickName }} <span class="username-time">•
                             {{ timeRequest(post.content.POST_Time) }}</span></p>
                 </div>
                 <div class="HC-Post-imgs" ref="imageContainer" @scroll="onScroll(post, $event)">
@@ -52,7 +52,7 @@
                     </span>
                 </div>
                 <div @click="showCommentBar(post)" class="allcomment">View {{ post.countComment > 0 ? post.countComment
-                : ''
+                    : ''
                     }}
                     comment</div>
                 <input class="inputcomment" type="text" @pointerenter="" placeholder="Add a comment...">
@@ -80,7 +80,7 @@ export default {
         return {
             currentImageIndex: 0,
             isHeartFilled: false,
-            userid: this.$router.history.current.params.id,
+            userid: '',
             user: [],
             posts: [],
             postId_Comment: [],
@@ -182,9 +182,9 @@ export default {
             return `${month} ${day}`;
         }, goProfile(userId) {
             if (userId == this.userid) {
-                this.$router.push(`/profile/${this.userid}`)
+                this.$router.push(`/profile`)
             } else {
-                this.$router.push(`/profile/${this.userid}/${userId}`)
+                this.$router.push(`/profile/${userId}`)
             }
         }, onScroll(post, event) {
             if (event && event.target) {
@@ -211,22 +211,56 @@ export default {
             if (postIndex > -1) {
                 this.posts[postIndex] = updatedPost;
             }
+        }, async fetchPosts() {
+            let postsData = (await AuthenticationService.getposts()).data;
+            this.posts = postsData.map(post => {
+                const isCurrentUserLiked = post.likes.includes(this.userid);
+                return {
+                    ...post,
+                    isHeartFilled: isCurrentUserLiked,
+                    activeIndex: 0,
+                    scrollTimeout: null,
+                    showFullContent: this.isContentOverFifteenWords(post.content.POST_Content),
+                };
+            });
         },
+
+        startPolling() {
+            this.polling = setInterval(async () => {
+                await this.fetchPosts(); // Ensure posts are fetched and updated reactively
+            }, 15000);
+        },
+
+        stopPolling() {
+            clearInterval(this.polling);
+        }
     },
     async mounted() {
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            // Nếu có token, có thể gửi yêu cầu đến máy chủ để xác thực token
+            const response = await AuthenticationService.verifyToken(token);
+            if (response.status !== 200) {
+                // Nếu token không hợp lệ, điều hướng đến trang đăng nhập
+                localStorage.removeItem("token");
+                this.$router.push("/");
+            }
+            this.userid = response.data.userId
+        } else {
+            // Nếu không có token, điều hướng đến trang đăng nhập
+            this.$router.push("/");
+        }
         this.user = (await AuthenticationService.getUser(this.userid)).data
-        const postsData = (await AuthenticationService.getposts()).data;
-        this.posts = postsData.map(post => {
-            const isCurrentUserLiked = post.likes.includes(this.userid);
-            return {
-                ...post,
-                isHeartFilled: isCurrentUserLiked,
-                activeIndex: 0,
-                scrollTimeout: null,
-                showFullContent: this.isContentOverFifteenWords(post.content.POST_Content)
-            };
-        });
-        console.log(this.posts);
+
+        // Fetch posts
+        this.fetchPosts();
+
+        // Start polling for new posts
+        this.startPolling();
+    },
+    beforeDestroy() {
+        this.stopPolling(); // Clear the interval when the component is destroyed
     }
 }
 </script>

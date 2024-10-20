@@ -557,7 +557,24 @@ export default {
             }
         }
     }, async mounted() {
-        this.currentUserId = this.$route.params.id;
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            // Nếu có token, có thể gửi yêu cầu đến máy chủ để xác thực token
+            const response = await AuthenticationService.verifyToken(token);
+            if (response.status !== 200) {
+                // Nếu token không hợp lệ, điều hướng đến trang đăng nhập
+                localStorage.removeItem("token");
+                this.$router.push("/");
+                console.log(">>> đi khôn hipw")
+
+            }
+            this.currentUserId = response.data.userId
+        } else {
+            // Nếu không có token, điều hướng đến trang đăng nhập
+            console.log(">>> đi")
+            this.$router.push("/");
+        }
         this.currentUser = (await AuthenticationService.getUser(this.currentUserId)).data;
         this.conversations = (await AuthenticationService.getConversations(this.currentUserId)).data;
         this.loadTime();
