@@ -9,7 +9,9 @@
                     @click="handleItemClick(link)" style="cursor: pointer;">
                     <!-- <RouterLink to="/profile" /> -->
                     <i v-if="link.icon" ref="i" class="icon" :class="getActiveIconClass(link)"></i>
-                    <img v-else :src="user.USER_AvatarURL != null ? loadimg(user) : ''" alt="" class="avatar">
+                    <img v-else :src="user.USER_AvatarURL != null ? loadimg(user) : ''" alt="" class="avatar" :class="{
+                        activeAvatar: link.link_to === $route.name && $route.name === 'Profile'
+                    }">
                     <p class="text" v-if="!is_expanded">{{ link.text }}</p>
                 </li>
             </ul>
@@ -82,7 +84,6 @@ export default {
         closePost() {
             this.showPostBar = false;
             this.links[3].status = !this.links[3].status
-            console.log(">>>", this.links[3].status)
         },
         handleItemClick(link) {
             if (link.id === 2) {
@@ -559,6 +560,7 @@ ul li:hover {
 
 .navcol .normal-setup ul li .avatar {
     border-radius: 50%;
+    display: flex;
     width: 26px;
     height: 26px;
     object-fit: cover;
@@ -597,6 +599,10 @@ ul li:hover {
 .activeLine {
     border: 1px silver solid;
     border-radius: 8px;
+}
+
+.activeAvatar {
+    border: 2px solid black;
 }
 
 /* .componentPost {

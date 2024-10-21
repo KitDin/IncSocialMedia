@@ -122,3 +122,35 @@ export async function ListFriend(id) {
     return false;
   }
 }
+
+export async function Friends(idUser, limit, offset, searchQuery) {
+  let query = `
+    SELECT 
+      u.USER_ID, 
+      ui.USER_FIRSTNAME, 
+      ui.USER_SUBNAME, 
+      ui.USER_NICKNAME, 
+      ui.USER_AVATARURL, 
+      ui.USER_STATUS
+    FROM __FRIEND_SHIP fs
+    JOIN __USER u ON (u.USER_ID = fs.USER_ID1 OR u.USER_ID = fs.USER_ID2)
+    JOIN __USER_INFOR ui ON u.USER_ID = ui.USER_ID
+    WHERE (fs.USER_ID1 = ? OR fs.USER_ID2 = ?)
+    AND u.USER_ID != ?`;
+
+  const params = [idUser, idUser, idUser];
+
+  // Apply search if searchQuery is not '0'
+  if (searchQuery !== "0") {
+    query += ` AND (LOWER(TRIM(ui.USER_NICKNAME)) LIKE ? OR LOWER(TRIM(ui.USER_FIRSTNAME)) LIKE ?)`;
+    const searchPattern = `%${searchQuery.trim().toLowerCase()}%`;
+    params.push(searchPattern, searchPattern);
+  }
+
+  // Pagination
+  query += ` LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
+
+  const [friends] = await pool.query(query, params);
+  return friends;
+}

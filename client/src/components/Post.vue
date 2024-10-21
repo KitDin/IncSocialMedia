@@ -1,6 +1,8 @@
 <template>
     <div class="frame-post">
-        <div class="prevent" @click="showPost()"></div>
+        <div class="prevent" @click="showPost()">
+            <i class="bi bi-x-lg" @click.stop="showPost()"></i>
+        </div>
         <form @submit.prevent="submitForm" method="POST" enctype="multipart/form-data">
 
             <div class="choose-img" v-if="imageUrl.length === 0">
@@ -15,7 +17,7 @@
                     <label class="label-img" for="img">Select from computer</label>
                 </div>
             </div>
-            <div class="choose-img char" v-show="imageUrl.length > 0">
+            <div class="choose-img char" v-show="imageUrl.length === 0">
                 <div class="tittle tittle-char">
                     <p class="move" @click="turnOfChar">V</p>
                     <p>Create new post</p>
@@ -29,18 +31,23 @@
                     </div>
                     <div class="status">
                         <div class="infor">
-                            <img class="user-avatar" :src="loadimg(user)" alt="">
-                            <h4 class="user-name">{{ user.USER_NickName }}</h4>
+                            <div>
+                                <img class="user-avatar" :src="loadimg(user)" alt="">
+                                <h4 class="user-name">{{ user.USER_NickName }}</h4>
+                            </div>
                             <div class="frame-select">
-                                <div class="selected" @click="showSelect"><i class="icon-selected"
-                                        :class="selected.icon"></i>
-                                    {{
-                                        selected.label }} <i class="bi bi-chevron-down"></i></div>
+                                <div class="selected" @click="showSelect">
+                                    <i class="icon-selected" :class="selected.icon"></i>
+                                    {{ selected.label }}
+                                    <i class="bi bi-chevron-down res-down"
+                                        :class="showSelectFrame ? 'res-down' : ''"></i>
+                                </div>
 
-                                <div v-if="showSelectFrame" class="select" v-for="option in options"
-                                    :key="option.label">
-                                    <div class="option" @click="chooseOption(option)"><i class="icon-option"
-                                            :class="option.icon"></i> {{ option.label }}
+                                <div class="select" v-if="showSelectFrame"
+                                    :class="showSelectFrame ? 'scale-in-ver-top' : ''">
+                                    <div class="option" @click="chooseOption(option)" v-for="option in options"
+                                        :key="option.label">
+                                        <i class="icon-option" :class="option.icon"></i> {{ option.label }}
                                     </div>
                                 </div>
                             </div>
@@ -49,16 +56,21 @@
                         <div class="more">
                             <textarea v-model="textarea" placeholder="Write a caption..." name="textarea" id="textarea"
                                 class="more-text" :oninput="change()"></textarea>
-                            <p class="hashtag">#</p>
-                            <p class="limit-char" :class="!changeColorLimit ? `color-limit` : `change-color-limit`">{{
-                                char
-                                }}/2,200</p>
+                            <div class="more-option">
+                                <p class="hashtag">#</p>
+                                <p class="limit-char" :class="!changeColorLimit ? `color-limit` : `change-color-limit`">
+                                    {{
+                                        char
+                                    }}/2.200</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <div class="hash-tag-selected"></div>
         </form>
+
     </div>
 </template>
 
@@ -183,13 +195,70 @@ export default {
 </script>
 
 <style>
+.res-down {
+    transform: rotate(90deg) !important;
+    transition: transform 0.3s ease;
+}
+
+.scale-in-ver-top {
+    -webkit-animation: scale-in-ver-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: scale-in-ver-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+@-webkit-keyframes scale-in-ver-top {
+    0% {
+        -webkit-transform: scaleY(0);
+        transform: scaleY(0);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+}
+
+@keyframes scale-in-ver-top {
+    0% {
+        -webkit-transform: scaleY(0);
+        transform: scaleY(0);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+}
+
 .frame-post .prevent {
+    position: relative;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+.frame-post .prevent i {
+    position: absolute;
+    right: 25px;
+    top: 15px;
+    color: white;
+    font-size: x-large;
+    cursor: pointer;
+}
+
 .frame-select {
+    position: relative;
     border: none;
     display: inline;
     font-size: 12px;
@@ -198,12 +267,13 @@ export default {
     text-align: center;
     justify-items: center;
     cursor: pointer;
-    position: fixed;
 }
 
 .frame-select .selected {
+    font-size: 14px;
     border-radius: 5px;
-    padding-right: 5px;
+    padding: 3px 0;
+    padding-right: 15px;
     padding-left: 10px;
 }
 
@@ -212,7 +282,7 @@ export default {
 }
 
 .frame-select .selected>i {
-    font-size: 10px !important;
+    font-size: 15px !important;
     margin-left: 3px;
 }
 
@@ -221,14 +291,24 @@ export default {
     margin: 10px;
 }
 
-.frame-select .select .option {
-    /* border-radius: 5px; */
-    padding-right: 5px;
-    padding-left: 10px;
-    border-top: 1px silver solid;
-    /* position: absolute; */
+.frame-select .select {
+    border-radius: 5px;
+    position: absolute;
+    z-index: 1000;
+    border: 1px silver solid;
+    transition: all 0.5 ease;
 }
 
+.frame-select .select .option {
+    font-size: 13px;
+    padding: 6px 0;
+    padding-right: 26px;
+    padding-left: 26px;
+}
+
+.frame-select .select .option:last-child {
+    border-top: 1px silver solid;
+}
 
 .frame-select .select .option:hover {
     background-color: rgba(0, 0, 0, 0.1);
@@ -330,7 +410,7 @@ export default {
 .frame-post .char .tittle-char .share {
     font-weight: 500;
     color: #0095F6;
-    margin-right: 8px;
+    margin-right: 12px;
     border: none;
     background-color: white;
     border-radius: 22px;
@@ -402,7 +482,8 @@ export default {
 .content-char .status .more {
     width: 100%;
     padding: 0 16px;
-    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .status .more .more-text::placeholder {
@@ -414,12 +495,31 @@ export default {
     width: 100%;
     height: 170px;
     resize: none;
+    border-bottom: silver 1px solid;
+    margin-bottom: 4px;
 }
 
-.content-char .status .more .hashtag {
-    position: absolute;
-    left: 16px;
+.content-char .status .more .more-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 32px;
+}
+
+.content-char .status .more .more-option .hashtag {
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.content-char .status .more .more-option .hashtag:hover {
+    background-color: rgba(192, 192, 192, 0.3);
+    border-radius: 50%;
 }
 
 .color-limit {
@@ -431,9 +531,8 @@ export default {
 }
 
 .content-char .status .more .limit-char {
-    position: absolute;
     right: 16px;
     font-size: 14px;
-
+    margin: 0;
 }
 </style>

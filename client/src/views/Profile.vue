@@ -28,8 +28,10 @@
                         </div>
                         <div class="pc-infor-social">
                             <p class="posts"><b>{{ posts.length }}</b> posts</p>
-                            <p class="followers"><b>{{ user_other.friendRequests.length }}</b> followers</p>
-                            <p class="friends"><b>{{ user_other.listFriend.length }}</b> friends</p>
+                            <p class="followers"><b>{{ user_other.friendRequests.length
+                                    }}</b> followers</p>
+                            <p class="friends"><b>{{ user_other.listFriend.length }}</b>
+                                friends</p>
                         </div>
                         <h6 class="pc-infor-fullname">{{ user_other.USER_SubName + " " + user_other.USER_FirstName }}
                         </h6>
@@ -53,8 +55,10 @@
                         </div>
                         <div class="pc-infor-social">
                             <p class="posts"><b>{{ posts.length }}</b> posts</p>
-                            <p class="followers"><b>{{ user_personal.friendRequests.length }}</b> followers</p>
-                            <p class="friends"><b>{{ user_personal.listFriend.length }}</b> friends</p>
+                            <p class="followers" @click="showFollowers()"><b>{{
+                                user_personal.friendRequests.length }}</b> followers</p>
+                            <p class="friends" @click="closeFriend()"><b>{{ user_personal.listFriend.length
+                                    }}</b> friends</p>
                         </div>
                         <h6 class="pc-infor-fullname">{{ user_personal.USER_SubName + " " + user_personal.USER_FirstName
                             }}
@@ -87,6 +91,9 @@
         <CommentPost v-if="showComment" :postId="postId_Comment" :userid="user_personal_params_id"
             :loadImgPost="loadimgpost" :loadImgUser="loadimg" :timeRequest="timeRequest" @updatePost="updatePost"
             :goProfile="goProfile" />
+        <Followers v-show="isFollowers" @closeFollowers="showFollowers" />
+
+        <Friends v-show="isFriend" :idUser="user_personal_params_id" @closeFriend="closeFriend" />
     </div>
 </template>
 
@@ -95,13 +102,13 @@ import Nav from '../components/Nav'
 import Footer from '../components/Footer.vue'
 import AuthenticationService from '../services/AuthenticationService'
 import CommentPost from "../components/CommentPost.vue"
+import Followers from '../components/Followers.vue'
+import Friends from '../components/Friends.vue'
 
 
 export default {
     data() {
         return {
-            // user_other_params_id: this.$router.history.current.params.idother ? this.$router.history.current.params.idother : false,
-            // user_personal_params_id: this.$router.history.current.params.id,
             user_other_params_id: '',
             user_personal_params_id: '',
             user_other: [],
@@ -113,10 +120,18 @@ export default {
             showComment: false,
             postId_Comment: '',
             mess: '',
+            isFollowers: false,
+            isFriend: false
         }
     }, components: {
-        Nav, Footer, CommentPost
+        Nav, Footer, CommentPost, Followers, Friends
     }, methods: {
+        closeFriend() {
+            this.isFriend = !this.isFriend
+        },
+        showFollowers() {
+            this.isFollowers = !this.isFollowers
+        },
         async becomeFriend(id, toUser) {
             const add = (await AuthenticationService.addAFrient(id, {
                 USER_SENDERID: toUser,
@@ -382,6 +397,7 @@ export default {
     }
 }
 
+
 .dataMess {
     background-color: #00b9f6;
     height: 40px;
@@ -557,9 +573,13 @@ export default {
 
                 .posts {}
 
-                .followers {}
+                .followers {
+                    cursor: pointer;
+                }
 
-                .friends {}
+                .friends {
+                    cursor: pointer;
+                }
             }
 
             /**pc-infor-social */
@@ -654,5 +674,14 @@ export default {
 
 .cancel:hover {
     background-color: rgb(175, 57, 57) !important;
+}
+
+.friend-and-followers {
+    /* width: 400px;
+    height: 400px;
+    background: black; */
+    position: fixed;
+    top: 0;
+    right: 0;
 }
 </style>

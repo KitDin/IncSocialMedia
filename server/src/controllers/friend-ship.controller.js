@@ -5,6 +5,7 @@ import {
   addFriend,
   canceltoUser,
   ListFriend,
+  Friends,
 } from "../services/frient-ship.js";
 
 export async function getAllIdUserRequestController(req, res) {
@@ -41,7 +42,7 @@ export async function acceptRequest(req, res) {
   }
 }
 
-export async function getListFriend(req, res, next) {
+export async function getListFriend(req, res) {
   try {
     const idUser = req.params.id;
     const listFriend = await ListFriend(idUser);
@@ -55,7 +56,27 @@ export async function getListFriend(req, res, next) {
   }
 }
 
-export async function sendRequest(req, res, next) {
+export async function getFriend(req, res) {
+  try {
+    const idUser = req.params.id;
+    const page = parseInt(req.query.page) || 1; // Current page, default is 1
+    const limit = parseInt(req.query.limit) || 10; // Number of friends per page
+    const offset = (page - 1) * limit;
+    const searchQuery = req.query.search || ""; // Optional search query
+
+    const friend = await Friends(idUser, limit, offset, searchQuery);
+
+    if (friend.length > 0) {
+      res.json({ status: true, friend, currentPage: page });
+    } else {
+      res.json({ status: false, message: "No friends found" });
+    }
+  } catch (error) {
+    res.json({ status: false, error: error.message });
+  }
+}
+
+export async function sendRequest(req, res) {
   try {
     const idUser = req.params.id;
     const { toUser } = req.body;

@@ -30,6 +30,11 @@ export default {
   getFriends(id) {
     return Api().get(`frients/${id}/havefriends`);
   },
+  getFriendFullInfo(id, page, limit, search) {
+    return Api().get(`frients/${id}/friend`, {
+      params: { page: page, limit: limit, search: search }
+    });
+  },
   uploadAvata(formData) {
     return Api().post("/information/upload", formData, {
       headers: {
