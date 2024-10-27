@@ -6,6 +6,7 @@ import {
   canceltoUser,
   ListFriend,
   Friends,
+  deleteFriend,
 } from "../services/frient-ship.js";
 
 export async function getAllIdUserRequestController(req, res) {
@@ -101,7 +102,7 @@ export async function sendRequest(req, res) {
   }
 }
 
-export async function cancelRequest(req, res, next) {
+export async function cancelRequest(req, res) {
   try {
     const idUser = req.params.id;
     const { cancelToUser } = req.body;
@@ -122,6 +123,21 @@ export async function cancelRequest(req, res, next) {
     console.error(error);
     res.json({
       success: false,
+      message: error,
+    });
+  }
+}
+
+export async function cancelFriend(req, res) {
+  try {
+    const { id, f_id } = req.params;
+    const checkDelete = await deleteFriend(id, f_id);
+    if (checkDelete) res.json({ status: true });
+    else res.json({ status: false });
+  } catch (error) {
+    console.error(error);
+    res.json({
+      status: false,
       message: error,
     });
   }

@@ -38,7 +38,7 @@ export default () => {
         console.error("Unauthorized access - token expired or invalid.");
 
         // Ví dụ: điều hướng người dùng tới trang đăng nhập nếu token hết hạn
-        window.location.href = "/login";
+        window.location.href = "/";
       }
       return Promise.reject(error);
     }

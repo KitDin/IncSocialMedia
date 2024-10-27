@@ -8,10 +8,12 @@
             </div>
             <p class="NF-myInf-logout" @click="logout()">Logout</p>
         </div>
-        <div class="NF-line">Your request <button v-show="users.length !== 0"
+        <div class="NF-line">Your request
+            <button @click="showAllRequest" v-show="users.length !== 0"
                 style="border: none; background-color: transparent; text-decoration: underline; color: #0095f6;">Xem
                 tất
-                cả</button>
+                cả
+            </button>
         </div>
 
         <!-- test -->
@@ -43,6 +45,10 @@
         <!-- <div class="succ">successful</div> -->
         <router-view />
         <Footer class="footer"></Footer>
+        <div class="tpl-fr-fl" v-show="isFriend" @click="showAllRequest"></div>
+        <Friends v-if="isFriend" :numOfFriend="user_personal.listFriend.length" :idUser="userid" :isFollower="2"
+            :class="isFriend ? 'slide-in-bck-center' : ''" @closeFriend="showAllRequest"
+            @updateNavOfFriend="updateNavOfFriend" />
     </div>
 </template>
 
@@ -50,7 +56,7 @@
 import { RouterLink } from 'vue-router';
 import Footer from './Footer.vue';
 import AuthenticationService from '../services/AuthenticationService';
-
+import Friends from './Friends.vue';
 
 export default {
     data() {
@@ -58,13 +64,21 @@ export default {
             loadingAccept: false,
             user_personal: [],
             userid: '',
-            users: []
+            users: [],
+            isFriend: false
         }
     },
     components: {
         RouterLink,
-        Footer
+        Footer,
+        Friends
     }, methods: {
+        async updateNavOfFriend() {
+            this.users = (await AuthenticationService.getUserRequest(this.userid)).data;
+        },
+        showAllRequest() {
+            this.isFriend = !this.isFriend
+        },
         logout() {
             localStorage.removeItem("token");
             this.$router.push('/')
@@ -145,6 +159,17 @@ export default {
 }
 </script>
 <style scoped>
+.tpl-fr-fl {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.201);
+    z-index: 1000;
+}
+
 .rotate-scale-up {
     -webkit-animation: rotate-scale-up 0.65s linear both;
     animation: rotate-scale-up 0.65s linear both;

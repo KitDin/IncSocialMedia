@@ -4,6 +4,7 @@
         <div v-if="showLoader" class="loader"></div>
         <Nav></Nav>
         <div class="profile-contents">
+            <!-- Người dùng khác -->
             <div v-if="!isCurrentUser">
                 <div class="pc-infor">
                     <div class="img">
@@ -22,12 +23,14 @@
                                 v-if="!checkIsSendUser(user_other.USER_Id) && checkIsUserSended(user_other.USER_Id) && !checkIsFriend(user_other.USER_Id)"
                                 @click="cancelFriend(user_personal.USER_Id, user_other.USER_Id)">Cancel</button>
                             <button class="add friend"
-                                v-if="!checkIsSendUser(user_other.USER_Id) && !checkIsUserSended(user_other.USER_Id) && checkIsFriend(user_other.USER_Id)">is
+                                v-if="!checkIsSendUser(user_other.USER_Id) && !checkIsUserSended(user_other.USER_Id) && checkIsFriend(user_other.USER_Id)">Is
                                 Friend</button>
                             <button class="mess">Message</button>
                         </div>
                         <div class="pc-infor-social">
                             <p class="posts"><b>{{ posts.length }}</b> posts</p>
+
+
                             <p class="followers"><b>{{ user_other.friendRequests.length
                                     }}</b> followers</p>
                             <p class="friends"><b>{{ user_other.listFriend.length }}</b>
@@ -42,6 +45,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- người dùng hiện tại  -->
             <div v-else>
                 <div class="pc-infor">
                     <div class="img">
@@ -55,9 +60,9 @@
                         </div>
                         <div class="pc-infor-social">
                             <p class="posts"><b>{{ posts.length }}</b> posts</p>
-                            <p class="followers" @click="showFollowers()"><b>{{
-                                user_personal.friendRequests.length }}</b> followers</p>
-                            <p class="friends" @click="closeFriend()"><b>{{ user_personal.listFriend.length
+                            <p class="followers" @click="closeFriend(2)"><b>{{
+                                numOfRequest }}</b> followers</p>
+                            <p class="friends" @click="closeFriend(1)"><b>{{ numOfFriend
                                     }}</b> friends</p>
                         </div>
                         <h6 class="pc-infor-fullname">{{ user_personal.USER_SubName + " " + user_personal.USER_FirstName
@@ -87,13 +92,19 @@
             </div>
         </div>
         <Footer class="footer"></Footer>
+
+        <!-- Bài Đăng -->
         <div v-if="showComment" @click="showCommentBar" class="Comment-prevent"></div>
         <CommentPost v-if="showComment" :postId="postId_Comment" :userid="user_personal_params_id"
             :loadImgPost="loadimgpost" :loadImgUser="loadimg" :timeRequest="timeRequest" @updatePost="updatePost"
             :goProfile="goProfile" />
-        <Followers v-show="isFollowers" @closeFollowers="showFollowers" />
 
-        <Friends v-show="isFriend" :idUser="user_personal_params_id" @closeFriend="closeFriend" />
+        <!-- Người theo dõi -->
+        <!--  Bạn bè  -->
+        <div class="tpl-fr-fl" v-show="isFriend" @click="closeFriend"></div>
+        <Friends v-if="isFriend" :numOfFriend="numOfFriend" :idUser="user_personal_params_id" @closeFriend="closeFriend"
+            :class="isFriend ? 'slide-in-bck-center' : ''" :isFollower="optionFriend"
+            @updateNumOfFriend="updateNumOfFriend" />
     </div>
 </template>
 
@@ -102,7 +113,6 @@ import Nav from '../components/Nav'
 import Footer from '../components/Footer.vue'
 import AuthenticationService from '../services/AuthenticationService'
 import CommentPost from "../components/CommentPost.vue"
-import Followers from '../components/Followers.vue'
 import Friends from '../components/Friends.vue'
 
 
@@ -121,12 +131,43 @@ export default {
             postId_Comment: '',
             mess: '',
             isFollowers: false,
-            isFriend: false
+            isFriend: false,
+            optionFriend: 1,
+            numOfFriend: '',
+            numOfRequest: ''
         }
     }, components: {
-        Nav, Footer, CommentPost, Followers, Friends
+        Nav, Footer, CommentPost, Friends
     }, methods: {
-        closeFriend() {
+        updateNumOfFriend(opiton) {
+            switch (opiton) {
+                case '+':
+                    if (this.numOfRequest > 0) { this.numOfFriend += 1; this.numOfRequest -= 1 }
+                    break;
+                case '-':
+                    if (this.numOfFriend > 0) this.numOfFriend -= 1
+                    break;
+                case '!':
+                    if (this.numOfRequest > 0) this.numOfRequest -= 1
+                    break
+                default:
+                    break
+            }
+        },
+        closeFriend(num) {
+            switch (num) {
+                case 1:
+                    this.optionFriend = num
+                    break;
+                case 2:
+                    this.optionFriend = num
+                    break;
+                case 3:
+                    this.optionFriend = num
+                    break;
+                default:
+                    break;
+            }
             this.isFriend = !this.isFriend
         },
         showFollowers() {
@@ -212,9 +253,9 @@ export default {
         },
         goProfile(userId) {
             if (userId == this.user_personal_params_id) {
-                this.$router.push(`/profile/${this.user_personal_params_id}`)
+                this.$router.push(`/profile`)
             } else {
-                this.$router.push(`/profile/${this.user_personal_params_id}/${userId}`)
+                this.$router.push(`/profile/${userId}`)
             }
         },
         timeRequest(POST_Time) {
@@ -251,7 +292,6 @@ export default {
         }, showCommentBar(post) {
             this.showComment = !this.showComment
             this.postId_Comment = post // Lấy id bình luận bài đăng 
-            console.log(this.postId_Comment);
         },
         loadimg(user) {
             if (user && user.USER_AvatarURL) {
@@ -290,6 +330,8 @@ export default {
         this.user_other_params_id = this.$route.params.idother;
         this.postHoverStates = new Array(this.posts.length).fill(false)
         this.user_personal = (await AuthenticationService.getUser(this.user_personal_params_id)).data;
+        this.numOfFriend = this.user_personal.listFriend.length
+        this.numOfRequest = this.user_personal.friendRequests.length
         if (this.$route.params.idother) {
             this.user_other = (await AuthenticationService.getUser(this.user_other_params_id)).data;
             this.isCurrentUser = false;
@@ -321,6 +363,7 @@ export default {
                 }
             })
         }
+
     }, computed: {
         currentPosts() {
             return this.isCurrentUser ? this.user_personal.posts : this.user_other.posts;
@@ -355,6 +398,50 @@ export default {
 
 
 <style scoped>
+.slide-in-bck-center {
+    -webkit-animation: slide-in-bck-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: slide-in-bck-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+.tpl-fr-fl {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.201);
+    z-index: 1000;
+}
+
+@-webkit-keyframes slide-in-bck-center {
+    0% {
+        -webkit-transform: translateZ(600px);
+        transform: translateZ(600px);
+        opacity: 0;
+    }
+
+    100% {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-bck-center {
+    0% {
+        -webkit-transform: translateZ(600px);
+        transform: translateZ(600px);
+        opacity: 0;
+    }
+
+    100% {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        opacity: 1;
+    }
+}
+
 .scale-out-ver-top {
     -webkit-animation: scale-out-ver-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
     animation: scale-out-ver-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;

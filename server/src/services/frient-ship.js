@@ -35,15 +35,24 @@ export async function getFullInforUserAllUser(id) {
 
 export async function insertRequestToShip(USER_SENDERID, USER_RECID) {
   try {
-    await pool.query(
+    const [check] = await pool.query(
       `
-  INSERT INTO __Friend_ship(USER_Id1,USER_Id2,FS_CreateAt)
-  SELECT USER_SenderId,USER_RecID,now() FROM __Friend_Request
-  WHERE USER_SENDERID = ? and USER_RECID = ?;
-  `,
+        INSERT INTO __Friend_ship(USER_Id1, USER_Id2, FS_CreateAt)
+        SELECT USER_SenderId, USER_RecID, now() 
+        FROM __Friend_Request
+        WHERE USER_SENDERID = ? AND USER_RECID = ?;
+        `,
       [USER_SENDERID, USER_RECID]
     );
-    return true;
+
+    // Kiểm tra số hàng bị ảnh hưởng
+    if (check.affectedRows > 0) {
+      console.log("Thêm thành công.");
+      return true;
+    } else {
+      console.log("Không có bản ghi nào được thêm.");
+      return false;
+    }
   } catch (error) {
     console.error(error);
     return false;
@@ -93,11 +102,12 @@ export async function addFriend(id, toUser) {
 
 export async function canceltoUser(id, toUser) {
   try {
-    await pool.query(
+    const check = await pool.query(
       `DELETE FROM __Friend_Request WHERE USER_SENDERID = ? and USER_RECID = ?;`,
       [id, toUser]
     );
-    return true;
+    console.warn(check);
+    return check;
   } catch (error) {
     console.error(error);
     return false;
@@ -141,11 +151,13 @@ export async function Friends(idUser, limit, offset, searchQuery) {
   const params = [idUser, idUser, idUser];
 
   // Apply search if searchQuery is not '0'
-  if (searchQuery !== "0") {
+  if (searchQuery !== "") {
     query += ` AND (LOWER(TRIM(ui.USER_NICKNAME)) LIKE ? OR LOWER(TRIM(ui.USER_FIRSTNAME)) LIKE ?)`;
     const searchPattern = `%${searchQuery.trim().toLowerCase()}%`;
     params.push(searchPattern, searchPattern);
   }
+
+  query += ` ORDER BY fs.FS_CREATEAT DESC`;
 
   // Pagination
   query += ` LIMIT ? OFFSET ?`;
@@ -153,4 +165,27 @@ export async function Friends(idUser, limit, offset, searchQuery) {
 
   const [friends] = await pool.query(query, params);
   return friends;
+}
+
+export async function deleteFriend(userId1, userId2) {
+  try {
+    const [result] = await pool.query(
+      `
+            DELETE FROM __FRIEND_SHIP
+            WHERE (USER_ID1 = ? AND USER_ID2 = ?) OR (USER_ID1 = ? AND USER_ID2 = ?);
+            `,
+      [userId1, userId2, userId2, userId1]
+    );
+
+    if (result.affectedRows > 0) {
+      console.log("Friendship deleted successfully.");
+      return true;
+    } else {
+      console.log("No friendship found to delete.");
+      return false;
+    }
+  } catch (error) {
+    console.error("Error deleting friendship:", error);
+    return false;
+  }
 }

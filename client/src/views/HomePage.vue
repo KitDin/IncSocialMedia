@@ -249,7 +249,9 @@ export default {
             this.userid = response.data.userId
         } else {
             // Nếu không có token, điều hướng đến trang đăng nhập
+            console.log('>>>')
             this.$router.push("/");
+
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data
 

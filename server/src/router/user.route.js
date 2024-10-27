@@ -14,6 +14,7 @@ import {
   sendRequest,
   cancelRequest,
   getFriend,
+  cancelFriend,
 } from "../controllers/friend-ship.controller.js";
 
 import {
@@ -55,6 +56,7 @@ router
 router.route("/frients/:id/havefriends").get(getListFriend);
 
 router.route("/frients/:id/friend").get(getFriend);
+router.route("/frients/:id/:f_id").delete(cancelFriend);
 
 router.route("/information/upload").post(upload.array("file"), registerInfor); // update the information (name, avatar) of user
 router

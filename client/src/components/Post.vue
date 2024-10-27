@@ -189,7 +189,6 @@ export default {
             this.$router.push("/");
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data
-        console.log(this.user)
     }
 }
 </script>

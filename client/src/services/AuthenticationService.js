@@ -24,6 +24,9 @@ export default {
   cancelSendFriend(id, toUser) {
     return Api().delete(`/frients/${id}`, toUser);
   },
+  deleteFriend(id, toUser) {
+    return Api().delete(`/frients/${id}/${toUser}`);
+  },
   addAFrient(id, idRequest) {
     return Api().post(`/frients/${id}`, idRequest);
   },
