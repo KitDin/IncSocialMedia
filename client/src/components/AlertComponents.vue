@@ -23,12 +23,14 @@ export default {
             default: 1
         }, dataAlert: {
             type: Object
+        }, action: {
+            type: String,
         }
     }, methods: {
         deleteAlert() {
-            this.$emit('deleteAlert', this.dataAlert)
+            this.$emit(this.action, this.dataAlert)
         }, acceptAlert() {
-            this.$emit('acceptAlert', this.dataAlert)
+            this.$emit(`${this.action}`, this.dataAlert)
         }, closeAlert() {
             this.$emit('closeAlert')
         }

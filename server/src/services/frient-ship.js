@@ -189,3 +189,19 @@ export async function deleteFriend(userId1, userId2) {
     return false;
   }
 }
+
+export async function getFollowingSQL(userId) {
+  try {
+    const sql = `select USER_ID, 
+      USER_FIRSTNAME, 
+      USER_SUBNAME, 
+      USER_NICKNAME, 
+      USER_AVATARURL, 
+      USER_STATUS user from __FRIEND_REQUEST fr join __user_infor u on fr.user_recid = u.user_id where fr.USER_SENDERID = ?`;
+
+    const [query] = await pool.query(sql, [userId]);
+    return query;
+  } catch (error) {
+    console.warn(error);
+  }
+}

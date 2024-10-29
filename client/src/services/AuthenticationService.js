@@ -38,6 +38,9 @@ export default {
       params: { page: page, limit: limit, search: search }
     });
   },
+  getFollowing(id) {
+    return Api().get(`following/${id}`);
+  },
   uploadAvata(formData) {
     return Api().post("/information/upload", formData, {
       headers: {

@@ -6,22 +6,22 @@
         </div>
         <div class="option">
 
-            <div class="follower " :class="isFollower === 1 ? 'activeChoose' : ''" @click.stop="toggleFollow(1)">
+            <div class="follower " :class="optionList === 1 ? 'activeChoose' : ''" @click.stop="toggleFollow(1)">
                 Friends <p> ({{ numOfFriend }}) </p>
             </div>
 
-            <div class="following" :class="isFollower === 2 ? 'activeChoose' : ''" @click.stop="toggleFollow(2)">
+            <div class="following" :class="optionList === 2 ? 'activeChoose' : ''" @click.stop="toggleFollow(2)">
                 Require <p> ({{ requests.length }}) </p>
             </div>
 
-            <div class="follow" :class="isFollower === 3 ? 'activeChoose' : ''" @click.stop="toggleFollow(3)">
-                Following <p> ({{ requests.length }}) </p>
+            <div class="follow" :class="optionList === 3 ? 'activeChoose' : ''" @click.stop="toggleFollow(3)">
+                Following <p> ({{ followings.length }}) </p>
             </div>
         </div>
         <div class="users">
 
             <!-- search -->
-            <div class="users-search" v-if="isFollower === 1">
+            <div class="users-search" v-if="optionList === 1">
                 <label for="input-search">
                     <i class="bi bi-search"></i>
                 </label>
@@ -37,7 +37,7 @@
             </div>
 
             <!-- Bạn bè friends-->
-            <div class="user-frame" ref="userFrame" @scroll="onScroll" v-if="isFollower === 1">
+            <div class="user-frame" ref="userFrame" @scroll="onScroll" v-if="optionList === 1">
                 <div class="isLoading" v-show="isSearching">
                     <span class="loader"></span>
                 </div>
@@ -48,7 +48,7 @@
                         <p class="nickname" @click="goProfileOther(friend)">{{ friend.USER_NICKNAME }}</p>
                         <p class="fullname">{{ friend.USER_SUBNAME + " " + friend.USER_FIRSTNAME }}</p>
                     </div>
-                    <div class="btn-cancel" @click="closeAlert(friend)">Huỷ kết bạn</div>
+                    <div class="btn-cancel" @click="openAlert(friend, 'deleteFriend', 2)">Huỷ kết bạn</div>
                 </div>
 
                 <div class="notFound" v-show="!isSearching && friends.length <= 0">Không tìm thấy người dùng!</div>
@@ -59,36 +59,37 @@
             </div>
 
             <!-- yêu cầu kết bạn (người theo dõi followers) -->
-            <div class="user-frame" ref="userFrame" @scroll="onScroll" v-if="isFollower === 2">
+            <div class="user-frame" ref="userFrame" @scroll="onScroll" v-if="optionList === 2">
                 <div class="user" v-for="request in requests" :key="request.USER_ID" v-show="!isSearching">
                     <img :src="loadImg(request)" alt="" @click="goProfileOther(request)">
                     <div class="user-info">
                         <p class="nickname" @click="goProfileOther(request)">{{ request.USER_NickName }}</p>
                         <p class="fullname">{{ request.USER_SubName + " " + request.USER_FirstName }}</p>
                     </div>
-                    <div class="btn-cancel " @click="becomeFriend(idUser, request.USER_Id)">Đồng ý</div>
-                    <div class="btn-cancel " @click="notBecomFriend(idUser, request.USER_Id)"><i
+                    <div class="btn-cancel " @click="openAlert(request, 'becomeFriend', 1)">
+                        Đồng ý</div>
+                    <div class="btn-cancel " @click="openAlert(request, 'notBecomFriend', 2)"><i
                             class="bi bi-person-fill-x"></i></div>
                 </div>
                 <div class="notFound" v-show="requests.length <= 0">Không có yêu cầu kết bạn!</div>
             </div>
 
             <!-- người đã gửi lời mời kết bạn (following) -->
-            <!-- <div class="user-frame" ref="userFrame" @scroll="onScroll" v-if="isFollower === 3">
-                <div class="user" v-for="request in requests" :key="request.USER_ID" v-show="!isSearching">
-                    <img :src="loadImg(request)" alt="">
+            <div class="user-frame" ref="userFrame" @scroll="onScroll" v-if="optionList === 3">
+                <div class="user" v-for="following in followings" :key="following.USER_ID" v-show="!isSearching">
+                    <img :src="loadImg(following)" alt="">
                     <div class="user-info">
-                        <p class="nickname">{{ request.USER_NickName }}</p>
-                        <p class="fullname">{{ request.USER_SubName + " " + request.USER_FirstName }}</p>
+                        <p class="nickname">{{ following.USER_NICKNAME }}</p>
+                        <p class="fullname">{{ following.USER_SUBNAME + " " + following.USER_FIRSTNAME }}</p>
                     </div>
-                    <div class="btn-cancel " @click="becomeFriend(idUser, request.USER_Id)">Đồng ý</div>
-                    <div class="btn-cancel " @click=""><i class="bi bi-person-fill-x"></i></div>
+                    <div class="btn-cancel " @click="openAlert(following, 'cancelFollwing', 2)">Huỷ theo dõi</div>
                 </div>
-                <div class="notFound" v-show="requests.length <= 0">Không có yêu cầu kết bạn!</div>
-            </div> -->
+                <div class="notFound" v-show="requests.length <= 0">Bạn chưa theo dõi ai hết!</div>
+            </div>
         </div>
-        <AlertComponents v-show="isAlert" :dataAlert="friendData" @closeAlert="closeAlert" :SetUpAlert="2"
-            @deleteAlert="deleteFriend" />
+        <AlertComponents v-if="isAlert" :dataAlert="dataAlert" @closeAlert="closeAlert" :SetUpAlert="setUpAlert"
+            @deleteAlert="deleteFriend" :action="action" @deleteFriend="deleteFriend" @becomeFriend="becomeFriend"
+            @notBecomFriend="notBecomFriend" @deleteAlertFollowing="cancelFollwoing" @cancelFollwing="cancelFollwing" />
     </div>
 </template>
 
@@ -99,9 +100,13 @@ import { debounce } from 'lodash';
 export default {
     data() {
         return {
+            optionList: '',
             requests: [],
             friends: [],
-            friendData: {},  // List of friends
+            followings: [],
+            dataAlert: {},  // List of friends
+            setUpAlert: 2,
+            action: '',
             page: 1,      // Current page
             limit: 10,
             isLoading: false, // Loading state for showing the loader
@@ -127,26 +132,16 @@ export default {
             } else {
                 console.error(req.message)
             }
+        }, cancelFollwoing() { console.log(">>> hello") },
+        openAlert(data, type, optionAlert = 2) {
+            this.dataAlert = data
+            this.action = type
+            this.setUpAlert = optionAlert
+            this.isAlert = true
         },
-        closeAlert(data) {
-            this.friendData = data
-            this.isAlert = !this.isAlert
-        },
+        closeAlert() { this.isAlert = false },
         toggleFollow(followStatus) {
-            switch (followStatus) {
-                case 1:
-                    this.isFollower = followStatus;
-                    break;
-                case 2:
-                    this.isFollower = followStatus;
-                    break;
-                case 3:
-                    this.isFollower = followStatus;
-                    break;
-                default:
-                    break;
-            }
-
+            this.optionList = followStatus;
         },
         async clsFriend() {
             this.page = 1;
@@ -223,26 +218,28 @@ export default {
                 }
 
             }
-        }, async becomeFriend(id, toUser) {
+        }, async becomeFriend(toUser) {
             try {
-                const add = (await AuthenticationService.addAFrient(id, {
-                    USER_SENDERID: toUser,
-                    USER_RECID: id
-                })).data;
+                console.log(">>>", toUser)
+                const add = (await AuthenticationService.addAFrient(this.idUser, {
+                    USER_SENDERID: toUser.USER_Id,
+                    USER_RECID: this.idUser
+                })).data
                 if (add.success) {
+                    this.isAlert = false;
                     this.isAccept = true
                     this.message = 'Đã chấp nhận kết bạn'
                     setTimeout(() => {
                         this.isAccept = false
                         this.message = ''
                         this.numOfFriend = this.numOfFriend + 1
-                        this.isFollower = 2
+                        this.optionList = 2
                         this.fetchData(true)
                         this.$emit('updateNumOfFriend', '+')
                         this.$emit('updateNavOfFriend')
                     }, 1500)
                 } else {
-                    console.error(">> Không thể thêm")
+                    console.error(">> Lỗi befriend")
                 }
             } catch (error) {
                 console.error(error)
@@ -252,24 +249,49 @@ export default {
                 this.$router.push(`/profile/${user.USER_ID}`)
             else if (user && user.USER_Id)
                 this.$router.push(`/profile/${user.USER_Id}`)
-        }, async notBecomFriend(id, toUser) {
+        }, async notBecomFriend(toUser) {
             try {
-                const del = (await AuthenticationService.cancelSendFriend(toUser, {
-                    data: { cancelToUser: id }
+                const del = (await AuthenticationService.cancelSendFriend(toUser.USER_Id, {
+                    data: { cancelToUser: this.idUser }
                 })).data
                 if (del.success) {
+                    this.isAlert = false;
                     this.isAccept = true
                     this.message = 'Đã huỷ yêu cầu kết bạn!'
                     setTimeout(() => {
                         this.isAccept = false
                         this.message = ''
                         this.numOfFriend = this.numOfFriend + 1
-                        this.isFollower = 2
+                        this.optionList = 2
                         this.fetchData(true)
                         this.$emit('updateNumOfFriend', '!')
+                        this.$emit('updateNavOfFriend')
                     }, 1500)
                 } else {
-                    console.error(">> Lỗi")
+                    console.error(">> Lỗi notBeFriend")
+                }
+
+            } catch (error) {
+                console.error(error)
+            }
+        }, async cancelFollwing(toUser) {
+            try {
+                const del = (await AuthenticationService.cancelSendFriend(this.idUser, {
+                    data: { cancelToUser: toUser.USER_ID }
+                })).data
+                if (del.success) {
+                    this.isAlert = false;
+                    this.isAccept = true
+                    this.message = 'Đã huỷ theo dõi thành công!'
+                    setTimeout(() => {
+                        this.isAccept = false
+                        this.message = ''
+                        this.numOfFriend = this.numOfFriend + 1
+                        this.optionList = 3
+                        this.fetchData(true)
+                    }, 1500)
+                } else {
+                    console.error(">> Lỗi following")
                 }
 
             } catch (error) {
@@ -279,9 +301,11 @@ export default {
         async fetchData(reset = false) {
             await this.loadFriends(reset);
             this.requests = (await AuthenticationService.getUserRequest(this.idUser)).data
+            this.followings = (await AuthenticationService.getFollowing(this.idUser)).data.following
         }
     },
     async mounted() {
+        this.optionList = this.isFollower
         this.fetchData()
     },
     props: {

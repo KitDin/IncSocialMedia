@@ -15,6 +15,7 @@ import {
   cancelRequest,
   getFriend,
   cancelFriend,
+  getFollowing,
 } from "../controllers/friend-ship.controller.js";
 
 import {
@@ -54,7 +55,7 @@ router
   .delete(cancelRequest);
 
 router.route("/frients/:id/havefriends").get(getListFriend);
-
+router.route("/following/:id").get(getFollowing);
 router.route("/frients/:id/friend").get(getFriend);
 router.route("/frients/:id/:f_id").delete(cancelFriend);
 

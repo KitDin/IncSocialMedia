@@ -56,7 +56,7 @@
                         <div class="pc-infor-nickname">
                             <p class="nickname">{{ user_personal.USER_NickName }}</p>
                             <button class="mess">Edit profile</button>
-                            <button class="mess">Log out</button>
+                            <button class="mess" @click="logOut()">Log out</button>
                         </div>
                         <div class="pc-infor-social">
                             <p class="posts"><b>{{ posts.length }}</b> posts</p>
@@ -153,6 +153,9 @@ export default {
                 default:
                     break
             }
+        }, logOut() {
+            localStorage.removeItem("token");
+            this.$router.push('/')
         },
         closeFriend(num) {
             switch (num) {

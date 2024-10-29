@@ -7,6 +7,7 @@ import {
   ListFriend,
   Friends,
   deleteFriend,
+  getFollowingSQL,
 } from "../services/frient-ship.js";
 
 export async function getAllIdUserRequestController(req, res) {
@@ -125,6 +126,16 @@ export async function cancelRequest(req, res) {
       success: false,
       message: error,
     });
+  }
+}
+
+export async function getFollowing(req, res) {
+  try {
+    const { id } = req.params;
+    const get = await getFollowingSQL(id);
+    res.json({ status: true, following: get });
+  } catch (error) {
+    res.json({ status: false, message: error });
   }
 }
 
