@@ -17,7 +17,7 @@
                     <label class="label-img" for="img">Select from computer</label>
                 </div>
             </div>
-            <div class="choose-img char" v-show="imageUrl.length === 0">
+            <div class="choose-img char" v-else>
                 <div class="tittle tittle-char">
                     <p class="move" @click="turnOfChar">V</p>
                     <p>Create new post</p>
@@ -327,9 +327,7 @@ export default {
     z-index: 1000;
 }
 
-.frame-post .choose-img {
-    transition: 0.5s ease-in-out;
-}
+.frame-post .choose-img {}
 
 .frame-post .choose-img .tittle {
     margin-bottom: 25%;

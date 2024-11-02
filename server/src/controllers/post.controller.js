@@ -28,13 +28,11 @@ export async function postStatus(req, res) {
       await postStatusImg(POST_Id, files[index]);
     }
 
-    console.log("Day là controller : " + USER_Id);
     res.json({
       status: "sucessfull",
       mess: "Thành công",
     });
   } catch (error) {
-    console.error("Error getting comments:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }

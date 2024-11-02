@@ -38,6 +38,7 @@ import {
   deleteConversation,
 } from "../controllers/message.controller.js";
 import middlewareController from "../middleware/test.middleware.js";
+import { moderateContentController } from "../controllers/moderate.controller.js";
 
 export const router = express.Router();
 

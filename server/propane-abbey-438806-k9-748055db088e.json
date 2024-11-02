@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "propane-abbey-438806-k9",
+  "private_key_id": "748055db088e8455926067b83ef9929bed162c82",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3f+cN4Eiv9djI\nLobr+zl8ZIj64f5AmlSBCp4RlUuD4vCtNVZvqxjQvBj99hG0Uzji3zbr1u2eGeCe\nH5hW6wHNV3/1ITBv+IP3FJxOQ5wPCh+NHl0vD+xoGi5lZUd7L7bzgcNuc8ZnczJa\nTTUbSbp5HZbqhjwe0monEVYVPaHjed4P7AtrpLxIOLvhwqRuCGgxKgXYHo3Fo5jc\nq+3N0F48bszsgnu+IZJIn9pgvdIV8bI1+l8xjaQgD3zymTFFHbSR5N6lkQDvmoz/\nTIQIo8+PVn9u8i3M5B1D80pr1owov8/0Uhk0dWXUOjbTn0vycJcEnnNnbpfXJ8f+\n74TMv8PxAgMBAAECggEAGbie8uNRAlaBUttauYdBxpLyXyBVxZ5xtpN+FqmI/UKj\n89N50ItOHiwk4KxLolgsAs5rt2Etdi+FvFm3aS+QgBpXavfXqfT5d8/MHRhTBAn/\njttbunYOmtpYozPax4Snrg2uuYkW8syYmUR1645JH3hV/X0KvlNGN+sGgvxcTd3m\nzNwg07s4C1nQcTVF5+JI62duI1wGsx2Rxyi32Q1vnJDlwfKJelBt4idGdJcBsMgC\nm9gsE4QpSAafCL0wA3MBIHQp55ysRILpgie7JQAGcI5SMO2cUy39smkZZtWfV9k+\nTpMIGcWLncoQRlwiB9Wh9QzuPPqGZ9fi3ZTP6LC8lQKBgQDcmE7oJn7cFe6AzDSy\nqY9IhlVXzcvUokh6aulgUuDfPH3ngkjRBXp+1Av7xRujpBnuqduw7MU75pFeRIcP\na17IWscyYKH755Q3Knt/U3uK7m7QmEURWvuTYdDo1sBkFPNXPdXswaCawnOT8Czw\nXOSCcv4mQUlmH4qPlq392ESIzwKBgQDU83C5yUtV/rhxc/o5mJ9775kVhKXEQzg0\nNQg9YHs7pz5BreEZ+PINd1nEeNUuLmStyXGWtfSSzQac9MFSy8Y+vvr6Kka408Sp\nDRChqjD81cH53DVzS5Asm+U1Pz6nACeFAemzr4b1NH045Yjh40UK6r1/mdkwWct1\n6pUk0dCXPwKBgCxIVu67a5P6wxoP5DRJXX4NmWw638Qbn7kTZS309TdbCVtECCIN\nm32CS7WK5/V9p8cFShjGLwHLUzs9Pm+V+jz2HC68v0e2QUahvJDezVoiaxRsvNCz\nFvWLGUjkc1Kj8gV9YEhaxkbK6jC0chD+VNDrDKHZUUay5jnU4bCnjXp5AoGBAKtw\n2f4Y2vf+vEtKjdc00qEawmoagsJBQ8x0LZAMTuo1uN9zt1gLngPNZI3Sof4uB4wK\nM9Kb5q0RNxPB0Kpxt8boRnKE+q7uftOC2zLsK8hB54rbCIUr/oSLdbqqkiws6aQh\naB7rX4GlonLeCJejOwCQ/8Ls/3f3st/Z3fzolkBNAoGAXFVlLDefLxQZ/a6a69f1\nd89r7GHxtLvEvmHO6ouoKnOwAiHABbWbAinkOUT43Zfk9NZmsUUIKqcPCcOtU+CS\npZPzyXWBUFX8JSKSYD7QrHJRfKfUVoPpfldpKCvsKeCyhXxea+Vl0ET3Y7t4z6iz\nOgnPS6iuyJts8hXd88huVjk=\n-----END PRIVATE KEY-----\n",
+  "client_email": "moderatetextsocialmedia@propane-abbey-438806-k9.iam.gserviceaccount.com",
+  "client_id": "101996731601570771198",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/moderatetextsocialmedia%40propane-abbey-438806-k9.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
