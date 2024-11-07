@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-.propane-abbey-438806-k9-748055db088e.json
+
 node_modules
 .DS_Store
 *.local
