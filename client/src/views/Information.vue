@@ -3,7 +3,8 @@
         <div class="container-form">
             <img class="logo" src="../assets/img_logo/logo.png" alt="">
             <h3 class="tille">BECOME A INC MEMBER</h3>
-            <p class="Terms" style="font-size: 13px;">Account unlocked! Spruce up your profile to hop into the INC social
+            <p class="Terms" style="font-size: 13px;">Account unlocked! Spruce up your profile to hop into the INC
+                social
                 fun with amazing posts and a joyful community.</p>
             <form @submit.prevent="submitForm" method="POST" enctype="multipart/form-data">
                 <div class="avatar">
@@ -23,7 +24,8 @@
                     <input type="text" v-model="subname" class="email subname" id="subname" name="subname"
                         placeholder="Sub Name">
                 </div>
-                <input type="date" v-model="bday" class="email" id="bday" name="bday" placeholder="Date of Birth" required>
+                <input type="date" v-model="bday" class="email" id="bday" name="bday" placeholder="Date of Birth"
+                    required>
                 <div class="sex">
                     <i class="bi bi-check a" :style="{ display: isMale ? 'block' : 'none' }"></i>
                     <input type=" button" value="Male" @click="setGender('male')" :class="{ colorChange: isMale }"
@@ -98,7 +100,7 @@ export default {
                     // this.error = response.data.error;
                     this.status = response.data.status;
                     if (response.data.status === "successful") {
-                        this.$router.push(`/home/${this.userid}`)
+                        this.$router.push(`/`)
                     }
                 });
             } catch (error) {

@@ -12,7 +12,11 @@ const middlewareController = {
   verifyToken(req, res, next) {
     try {
       // Lấy token từ header
-      if (req.path === "/login" || req.path === "/register") {
+      if (
+        req.path === "/login" ||
+        req.path === "/register" ||
+        req.path === "/information/upload"
+      ) {
         return next(); // Bỏ qua middleware và đi tiếp
       }
       const token = req.headers["authorization"];

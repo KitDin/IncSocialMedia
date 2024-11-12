@@ -62,18 +62,35 @@ export const moderateContentController = async (req, res) => {
     const [entitiesResult] = await client.analyzeEntities({ document });
     const entities = entitiesResult.entities.map((entity) => entity.name); // Get entity names as tags
 
+    let categories = [];
+    if (/^[a-zA-Z0-9\s.,!?]+$/.test(text)) {
+      // Kiểm tra nếu văn bản chỉ chứa tiếng Anh
+      const [classificationResult] = await client.classifyText({ document });
+      categories = classificationResult.categories.map(
+        (category) => category.name
+      );
+    }
+
+    const splitCategories = categories.map((category) => {
+      // Bỏ dấu "/" ở đầu chuỗi và tách theo dấu "/"
+      return category.slice(1).split("/");
+    });
+
+    const mergedCategories = splitCategories.flat();
     // Check sentiment score
     if (sentiment.score < -0.5) {
       return res.status(400).json({
         message: "This content may be prohibited.",
         score: sentiment.score,
         tags: entities, // Return the tags as well
+        categories,
       });
     } else {
       res.status(200).json({
         message: "This content is acceptable.",
         score: sentiment.score,
         tags: entities, // Return the tags
+        categories,
       });
     }
   } catch (err) {

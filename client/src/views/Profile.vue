@@ -3,7 +3,7 @@
         <div class="" :class="mess ? 'scale-up-ver-top dataMess' : ''">{{ mess }}</div>
         <div v-if="showLoader" class="loader"></div>
         <Nav></Nav>
-        <div class="profile-contents">
+        <div v-show="!showLoader" class="profile-contents">
             <!-- Người dùng khác -->
             <div v-if="!isCurrentUser">
                 <div class="pc-infor">
@@ -330,12 +330,12 @@ export default {
             this.$router.push("/");
         }
 
-        this.user_other_params_id = this.$route.params.idother;
         this.postHoverStates = new Array(this.posts.length).fill(false)
         this.user_personal = (await AuthenticationService.getUser(this.user_personal_params_id)).data;
         this.numOfFriend = this.user_personal.listFriend.length
         this.numOfRequest = this.user_personal.friendRequests.length
         if (this.$route.params.idother) {
+            this.user_other_params_id = this.$route.params.idother;
             this.user_other = (await AuthenticationService.getUser(this.user_other_params_id)).data;
             this.isCurrentUser = false;
             const postsData = (await AuthenticationService.getpost(this.user_other_params_id)).data;
@@ -536,6 +536,10 @@ export default {
         -webkit-transform-origin: 100% 0%;
         transform-origin: 100% 0%;
     }
+}
+
+.profile-frame {
+    transition: all .8s ease-in-out;
 }
 
 .Comment-prevent {
