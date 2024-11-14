@@ -18,9 +18,8 @@ export default {
 
 #nprogress .bar {
   background-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.8));
-  /* Màu sắc của dải tải */
   height: 5px;
-  /* Độ dày của dải tải */
+  z-index: 99999999999999999999999999999999999999999999999999999999999;
 }
 
 .fade-enter-active,

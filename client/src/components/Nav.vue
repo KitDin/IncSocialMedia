@@ -40,11 +40,13 @@
         </div>
         <div class="prevent2" v-if="showSearchBar" @click="showpreventsearch()"></div>
 
-
         <Search v-if="is_expanded && showSearchBar" :isOpen="showSearchBar"
             :class="!showPostBar ? 'animationClosePar' : ''" />
 
-        <Post class="componentPost" v-show="showPostBar" @closePost="closePost" />
+        <AlertComponents v-if="!isAlert" :message="alertMessage" />
+
+        <Post class="componentPost" v-if="showPostBar" @closePost="closePost" @errorPost="errorPost" />
+
     </div>
 </template>
 
@@ -53,6 +55,8 @@ import AuthenticationService from '../services/AuthenticationService';
 import { RouterLink } from 'vue-router'
 import Search from './Search.vue'
 import Post from './Post.vue';
+import AlertComponents from './AlertComponents.vue';
+
 
 let activeItem = null;
 export default {
@@ -64,6 +68,8 @@ export default {
             user: [],
             showPostBar: false,
             showSearchBar: false,
+            isAlert: true,
+            alertMessage: '',
             links: [
                 { id: 1, icon: "bi bi-house-door", icon_fill: "bi bi-house-fill", text: "Home", link_to: "Home" },
                 { id: 2, icon: "bi bi-search-heart", icon_fill: "bi bi-search-heart-fill", text: "Search", link_to: null, status: false },
@@ -81,7 +87,12 @@ export default {
             ],
         };
     }, methods: {
+        errorPost(err) {
+            this.alertMessage = err
+            this.isAlert = false
+        },
         closePost() {
+            this.$emit('makeNewPost')
             this.showPostBar = false;
             this.links[3].status = !this.links[3].status
         },
@@ -158,7 +169,7 @@ export default {
         this.user = (await AuthenticationService.getUser(this.userid)).data;
         // console.log(this.links);
     },
-    components: { RouterLink, Search, Post },
+    components: { RouterLink, Search, Post, AlertComponents },
 }
 </script>
 
@@ -483,6 +494,28 @@ export default {
     top: 0px;
     z-index: -8888888888888888888888888888888;
     transition: 0.1s linear;
+}
+
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.8));
+    background-size: 200% 100%;
+    animation: loading 2s linear infinite;
+    z-index: 9999999999999999999999999999999999999999999999;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
 }
 
 .prevent3 {

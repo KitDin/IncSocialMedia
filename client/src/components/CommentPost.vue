@@ -201,6 +201,8 @@ export default {
                         }
                     }, this.getRandomNumber(500, 1000));
                 }
+
+
             } catch (error) {
                 console.error("Error posting comment:", error);
             }
@@ -257,16 +259,16 @@ export default {
             }
         },
 
-        startPolling() {
-            this.polling = setInterval(async () => {
-                await this.fetchComments();  // Refresh comments reactively
-            }, 15000); // Poll every 1 second (adjust as needed)
-        },
+        // startPolling() {
+        //     this.polling = setInterval(async () => {
+        //         await this.fetchComments();  // Refresh comments reactively
+        //     }, 15000); // Poll every 1 second (adjust as needed)
+        // },
 
         // Stops the polling when necessary
-        stopPolling() {
-            clearInterval(this.polling); // Clear the interval
-        }
+        // stopPolling() {
+        //     clearInterval(this.polling); // Clear the interval
+        // }
     }, props: {
         userid: String,
         postId: Object,
@@ -276,7 +278,7 @@ export default {
         goProfile: Function
     }, async mounted() {
         this.fetchComments(); // Fetch comments initially when the component is mounted
-        this.startPolling();
+        // this.startPolling();
     }, watch: {
         textComment(value) {
             this.char = value.length;

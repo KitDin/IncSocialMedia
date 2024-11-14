@@ -3,22 +3,24 @@
         <h2 class="h2">Search</h2>
         <input v-model="searchQuery" @input="handleInput" type="text" class="inputSearch" placeholder="Search">
         <div class="search-loader" v-if="searching">
-            <div class="rectangles">
+
+            <!-- <div class="rectangles">
                 <div class="rect"></div>
                 <div class="rect"></div>
                 <div class="rect"></div>
-            </div>
+            </div> -->
         </div>
-        <div v-if="searching && searchResults.length === 0" class="loading-indicator">
-            <div class="loader" v-if="!showNoResults">
+
+
+        <!-- <div v-if="searching && searchResults.length === 0" class="loading-indicator">
+            <div class="loader-search" v-if="!showNoResults">
                 <div class="rect-frame rect1"></div>
                 <div class="rect-frame rect2"></div>
                 <div class="rect-frame rect3"></div>
                 <div class="rect-frame rect4"></div>
                 <div class="rect-frame rect5"></div>
             </div>
-
-        </div>
+        </div> -->
         <h6 class="recent">Recent</h6>
         <div class="noResults" v-if="showNoResults">
             No results found.
@@ -278,10 +280,8 @@ export default {
     background-color: white;
 }
 
-.loader {
+.loader-search {
     display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .rect-frame {
@@ -329,42 +329,45 @@ export default {
 }
 
 
-.search-loader {
+/* {
     width: 24px;
     height: 24px;
     position: absolute;
     top: 117.5px;
     right: 39px;
     transform: translateY(-50%);
+} */
+
+.search-loader {
+    position: absolute;
+    top: 104.5px;
+    right: 32px;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border: 4px solid #ddd;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 2s cubic-bezier(0.5, 0.2, 0.3, 1) infinite;
 }
 
-.rectangles {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    animation: spin 1s linear infinite;
-}
-
-.rect {
-    width: 12px;
-    height: 4px;
-    background: #3498db;
-    border-radius: 2px;
-    margin: 1px 0;
-}
-
+/* Animation keyframes */
 @keyframes spin {
     0% {
         transform: rotate(0deg);
     }
 
+    50% {
+        transform: rotate(180deg);
+        animation-timing-function: ease-in;
+    }
+
     100% {
         transform: rotate(360deg);
+        animation-timing-function: ease-out;
     }
 }
+
 
 @-webkit-keyframes scale-in-hor-left {
     0% {

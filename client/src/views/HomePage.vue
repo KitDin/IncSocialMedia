@@ -2,7 +2,7 @@
     <div>
         <Header></Header>
         <div class="HomeContent">
-            <Nav></Nav>
+            <NavMenu @makeNewPost="makeNewPost" />
 
             <div class="HC-Post" v-for="post in posts" :key="post.content.POST_Id">
                 <div class="HC-Post-infor">
@@ -70,7 +70,7 @@
 
 <script>
 import Footer from "../components/Footer.vue"
-import Nav from "../components/Nav.vue"
+import NavMenu from "../components/Nav.vue"
 import NavRequestFriend from "../components/NavRequestFriend.vue"
 import AuthenticationService from "../services/AuthenticationService"
 import CommentPost from "../components/CommentPost.vue"
@@ -89,12 +89,13 @@ export default {
     },
     components: {
         Footer,
-        Nav,
+        NavMenu,
         NavRequestFriend,
         CommentPost
     },
     props: ['id'],
     methods: {
+        async makeNewPost() { console.log(">> hlo"); await this.fetchPosts() },
         test(post) {
             console.log(post);
         },
@@ -256,7 +257,7 @@ export default {
         this.user = (await AuthenticationService.getUser(this.userid)).data
 
         // Fetch posts
-        this.fetchPosts();
+        await this.fetchPosts();
 
         // Start polling for new posts
         this.startPolling();

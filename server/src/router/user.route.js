@@ -63,7 +63,7 @@ router.route("/frients/:id/:f_id").delete(cancelFriend);
 router.route("/information/upload").post(upload.array("file"), registerInfor); // update the information (name, avatar) of user
 router
   .route("/status/img")
-  .post(uploadStatus.array("file"), postStatus)
+  .post(uploadStatus.array("file"), moderateContentController, postStatus)
   .get(getPostsOfUsers);
 router
   .route("/status/img/:id")

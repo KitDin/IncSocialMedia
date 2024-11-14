@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            <div class="list">
+            <div class="list" v-if="posts.length > 0">
                 <div @mouseover="setPostHoverState(post.content.POST_Id, true)"
                     @mouseout="setPostHoverState(post.content.POST_Id, false)" class="listpost"
                     v-for="(post, index) in posts" :key="post.content.POST_Id" @click="showCommentBar(post)">
@@ -88,6 +88,15 @@
                     </div>
                     <img class="imgp" :src="loadimgpost(post.images[0])" alt="">
                     <i class="bi bi-images icon"></i>
+                </div>
+            </div>
+
+            <div class="list list-not-post" v-else>
+                <div class="circle-i">
+                    <i class="bi bi-camera"></i>
+                </div>
+                <div class="not-posts">
+                    No Posts Yet
                 </div>
             </div>
         </div>
@@ -401,93 +410,6 @@ export default {
 
 
 <style scoped>
-.slide-in-bck-center {
-    -webkit-animation: slide-in-bck-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-    animation: slide-in-bck-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-}
-
-.tpl-fr-fl {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.201);
-    z-index: 1000;
-}
-
-@-webkit-keyframes slide-in-bck-center {
-    0% {
-        -webkit-transform: translateZ(600px);
-        transform: translateZ(600px);
-        opacity: 0;
-    }
-
-    100% {
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slide-in-bck-center {
-    0% {
-        -webkit-transform: translateZ(600px);
-        transform: translateZ(600px);
-        opacity: 0;
-    }
-
-    100% {
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-        opacity: 1;
-    }
-}
-
-.scale-out-ver-top {
-    -webkit-animation: scale-out-ver-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
-    animation: scale-out-ver-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
-}
-
-
-@-webkit-keyframes scale-out-ver-top {
-    0% {
-        -webkit-transform: scaleY(1);
-        transform: scaleY(1);
-        -webkit-transform-origin: 100% 0%;
-        transform-origin: 100% 0%;
-        opacity: 1;
-    }
-
-    100% {
-        -webkit-transform: scaleY(0);
-        transform: scaleY(0);
-        -webkit-transform-origin: 100% 0%;
-        transform-origin: 100% 0%;
-        opacity: 1;
-    }
-}
-
-@keyframes scale-out-ver-top {
-    0% {
-        -webkit-transform: scaleY(1);
-        transform: scaleY(1);
-        -webkit-transform-origin: 100% 0%;
-        transform-origin: 100% 0%;
-        opacity: 1;
-    }
-
-    100% {
-        -webkit-transform: scaleY(0);
-        transform: scaleY(0);
-        -webkit-transform-origin: 100% 0%;
-        transform-origin: 100% 0%;
-        opacity: 1;
-    }
-}
-
-
 .dataMess {
     background-color: #00b9f6;
     height: 40px;
@@ -749,13 +671,100 @@ export default {
         }
     }
 
-    .footer {
-        position: relative;
-        margin: auto;
-        transform: translateX(75%);
+    /* ket thuc pc-infor  */
+}
+
+.slide-in-bck-center {
+    -webkit-animation: slide-in-bck-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation: slide-in-bck-center 0.3s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+.tpl-fr-fl {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.201);
+    z-index: 1000;
+}
+
+@-webkit-keyframes slide-in-bck-center {
+    0% {
+        -webkit-transform: translateZ(600px);
+        transform: translateZ(600px);
+        opacity: 0;
     }
 
-    /* ket thuc pc-infor  */
+    100% {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-bck-center {
+    0% {
+        -webkit-transform: translateZ(600px);
+        transform: translateZ(600px);
+        opacity: 0;
+    }
+
+    100% {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        opacity: 1;
+    }
+}
+
+.scale-out-ver-top {
+    -webkit-animation: scale-out-ver-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+    animation: scale-out-ver-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+}
+
+
+@-webkit-keyframes scale-out-ver-top {
+    0% {
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleY(0);
+        transform: scaleY(0);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+}
+
+@keyframes scale-out-ver-top {
+    0% {
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleY(0);
+        transform: scaleY(0);
+        -webkit-transform-origin: 100% 0%;
+        transform-origin: 100% 0%;
+        opacity: 1;
+    }
+}
+
+.footer {
+    position: relative !important;
+    left: 50%;
+    transform: translateX(-40%);
+    width: 1024px;
 }
 
 .cancel {
@@ -770,6 +779,8 @@ export default {
     background-color: rgb(175, 57, 57) !important;
 }
 
+
+
 .friend-and-followers {
     /* width: 400px;
     height: 400px;
@@ -777,5 +788,32 @@ export default {
     position: fixed;
     top: 0;
     right: 0;
+}
+
+
+.list.list-not-post {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.list.list-not-post .circle-i {
+    height: 68px;
+    width: 68px;
+    border-radius: 50%;
+    margin-bottom: 22px;
+    border: #101010 2px solid;
+    display: grid;
+    place-content: center;
+}
+
+.list.list-not-post .circle-i i {
+    font-size: 32px;
+}
+
+.list.list-not-post .not-posts {
+    font-size: 32px;
+    font-weight: 600;
 }
 </style>

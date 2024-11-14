@@ -10,9 +10,8 @@
         </div>
         <div class="NF-line">Your request
             <button @click="showAllRequest" v-show="users.length !== 0"
-                style="border: none; background-color: transparent; text-decoration: underline; color: #0095f6;">Xem
-                tất
-                cả
+                style="border: none; background-color: transparent; color: #000000; font-weight: bold"> See
+                all
             </button>
         </div>
 

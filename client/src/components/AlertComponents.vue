@@ -1,13 +1,14 @@
 <template>
     <div class="alert-component">
         <div class="alert-header">
-            <p>Xác nhận</p>
+            <p>Notice</p>
             <i class="bi bi-x" @click="closeAlert"></i>
         </div>
+        <div class="alert-message">{{ message }}</div>
         <div class="alert-btn">
-            <button class="green" v-if="SetUpAlert === 1" @click="acceptAlert">Oke</button>
-            <button class="red" v-if="SetUpAlert === 2" @click="deleteAlert">Xoá</button>
-            <button class="nomal" @click="closeAlert">Huỷ</button>
+            <button class="green" v-if="SetUpAlert === 1" @click="acceptAlert">Accept</button>
+            <button class="red" v-if="SetUpAlert === 2" @click="deleteAlert">Delete</button>
+            <button class="nomal" @click="closeAlert">Cancel</button>
         </div>
     </div>
 </template>
@@ -25,6 +26,9 @@ export default {
             type: Object
         }, action: {
             type: String,
+        }, message: {
+            type: String,
+            default: 'Are you sure?'
         }
     }, methods: {
         deleteAlert() {
@@ -43,14 +47,13 @@ export default {
     position: fixed;
     top: 50%;
     left: 50%;
+    transform: translate(-50%, -50%) !important;
     border-radius: 12px;
     background: #ffffff;
     box-shadow: -20px -20px 60px #bebebe,
         20px 20px 60px #ffffff;
-    width: 200px;
     -webkit-animation: slide-in-fwd-center 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
     animation: slide-in-fwd-center 0.4s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-    transform: translate(-50%, -50%) !important;
 }
 
 @-webkit-keyframes slide-in-fwd-center {
@@ -101,6 +104,14 @@ export default {
     cursor: pointer;
 }
 
+.alert-component .alert-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 12px 0 12px 0;
+    font-size: 14px;
+}
+
 .alert-component .alert-btn {
     display: flex;
     justify-content: space-evenly;
@@ -110,7 +121,7 @@ export default {
     border: none;
     border-radius: 12px;
     padding: 6px 28px;
-    margin: 18px 0 12px 0;
+    margin: 0 8px 12px 8px;
     transition: all .5s ease-in-out;
 }
 

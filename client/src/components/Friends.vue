@@ -367,8 +367,9 @@ export default {
 
 .fr-fl {
     position: fixed;
-    top: 20%;
-    left: 40%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
     width: 400px;
     height: 400px;
     background: #ffffff;

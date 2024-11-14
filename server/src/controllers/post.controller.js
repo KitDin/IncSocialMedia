@@ -13,10 +13,10 @@ import {
 } from "../services/post.js";
 
 import { getUserById } from "../services/user.js";
+
 export async function postStatus(req, res) {
   const files = req.files.map((file) => file.filename);
   const { POST_Id, USER_Id, POST_Content, POST_AccessModifies } = req.body;
-
   try {
     await postStatusContent(
       POST_Id,
@@ -29,11 +29,15 @@ export async function postStatus(req, res) {
     }
 
     res.json({
-      status: "sucessfull",
-      mess: "Thành công",
+      status: true,
+      message: "Thành công",
     });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({
+      status: false,
+      error: "Internal Server Error",
+    });
+    console.error(error);
   }
 }
 

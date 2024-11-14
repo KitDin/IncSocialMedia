@@ -17,6 +17,7 @@
     "axios": "^1.5.1",
     "cropperjs": "^1.6.1",
     "feather-icons": "^4.29.2",
+    "ldrs": "^1.0.2",
     "lodash": "^4.17.21",
     "nprogress": "^0.2.0",
     "socket.io-client": "^4.7.5",

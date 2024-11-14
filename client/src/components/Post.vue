@@ -1,76 +1,72 @@
 <template>
     <div class="frame-post">
+        <div v-if="isLoadingSubmit" class="loader"></div>
+
         <div class="prevent" @click="showPost()">
             <i class="bi bi-x-lg" @click.stop="showPost()"></i>
         </div>
-        <form @submit.prevent="submitForm" method="POST" enctype="multipart/form-data">
 
-            <div class="choose-img" v-if="imageUrl.length === 0">
-                <div class="tittle">
-                    <p>Create new post</p>
-                </div>
-                <div class="content">
-                    <i class="bi bi-images"></i>
-                    <p>Drag photos and videos here</p>
-                    <input ref="file" type="file" class="input-img" id="img" name="img" multiple
-                        @change="handleFileUpload">
-                    <label class="label-img" for="img">Select from computer</label>
-                </div>
+        <div class="choose-img" v-if="imageUrl.length === 0">
+            <div class="tittle">
+                <p>Create new post</p>
             </div>
-            <div class="choose-img char" v-else>
-                <div class="tittle tittle-char">
-                    <p class="move" @click="turnOfChar">V</p>
-                    <p>Create new post</p>
-                    <button type="submit" class="share">Share</button>
+            <div class="content">
+                <i class="bi bi-images"></i>
+                <p>Drag photos and videos here</p>
+                <input ref="file" type="file" class="input-img" id="img" name="img" multiple @change="handleFileUpload">
+                <label class="label-img" for="img">Select from computer</label>
+            </div>
+        </div>
+        <div class="choose-img char" v-else>
+            <div class="tittle tittle-char">
+                <p class="move" @click="turnOfChar">V</p>
+                <p>Create new post</p>
+                <button type="button" @click="submitForm" class="share">Share</button>
+            </div>
+            <div class="content content-char">
+                <div class="frame-img-post">
+                    <div class="img-post-item" v-for="(image, index) in imageUrl" :key="index">
+                        <img class="img-post" ref="file" :src="image" alt="Uploaded Image">
+                    </div>
                 </div>
-                <div class="content content-char">
-                    <div class="frame-img-post">
-                        <div class="img-post-item" v-for="(image, index) in imageUrl" :key="index">
-                            <img class="img-post" ref="file" :src="image" alt="Uploaded Image">
+                <div class="status">
+                    <div class="infor">
+                        <div>
+                            <img class="user-avatar" :src="loadimg(user)" alt="">
+                            <h4 class="user-name">{{ user.USER_NickName }}</h4>
+                        </div>
+                        <div class="frame-select">
+                            <div class="selected" @click="showSelect">
+                                <i class="icon-selected" :class="selected.icon"></i>
+                                {{ selected.label }}
+                                <i class="bi bi-chevron-down res-down" :class="showSelectFrame ? 'res-down' : ''"></i>
+                            </div>
+
+                            <div class="select" v-if="showSelectFrame"
+                                :class="showSelectFrame ? 'scale-in-ver-top' : ''">
+                                <div class="option" @click="chooseOption(option)" v-for="option in options"
+                                    :key="option.label">
+                                    <i class="icon-option" :class="option.icon"></i> {{ option.label }}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="status">
-                        <div class="infor">
-                            <div>
-                                <img class="user-avatar" :src="loadimg(user)" alt="">
-                                <h4 class="user-name">{{ user.USER_NickName }}</h4>
-                            </div>
-                            <div class="frame-select">
-                                <div class="selected" @click="showSelect">
-                                    <i class="icon-selected" :class="selected.icon"></i>
-                                    {{ selected.label }}
-                                    <i class="bi bi-chevron-down res-down"
-                                        :class="showSelectFrame ? 'res-down' : ''"></i>
-                                </div>
 
-                                <div class="select" v-if="showSelectFrame"
-                                    :class="showSelectFrame ? 'scale-in-ver-top' : ''">
-                                    <div class="option" @click="chooseOption(option)" v-for="option in options"
-                                        :key="option.label">
-                                        <i class="icon-option" :class="option.icon"></i> {{ option.label }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="more">
-                            <textarea v-model="textarea" placeholder="Write a caption..." name="textarea" id="textarea"
-                                class="more-text" :oninput="change()"></textarea>
-                            <div class="more-option">
-                                <p class="hashtag">#</p>
-                                <p class="limit-char" :class="!changeColorLimit ? `color-limit` : `change-color-limit`">
-                                    {{
-                                        char
-                                    }}/2.200</p>
-                            </div>
+                    <div class="more">
+                        <textarea v-model="textarea" placeholder="Write a caption..." name="textarea" id="textarea"
+                            class="more-text" :oninput="change()"></textarea>
+                        <div class="more-option">
+                            <p class="hashtag">#</p>
+                            <p class="limit-char" :class="!changeColorLimit ? `color-limit` : `change-color-limit`">
+                                {{
+                                    char
+                                }}/2.200</p>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="hash-tag-selected"></div>
-        </form>
-
+        </div>
+        <div class="hash-tag-selected"></div>
     </div>
 </template>
 
@@ -89,6 +85,7 @@ export default {
             isImage: false,
             limit: 2200,
             showPostBar: false,
+            isLoadingSubmit: false,
             selected: { label: "Public", value: "Public", icon: "bi bi-globe-asia-australia" },
             options: [
                 { label: "Public", value: "Public", icon: "bi bi-globe-asia-australia" },
@@ -126,24 +123,37 @@ export default {
             this.textarea = ''
         },
         async submitForm() {
-            const formData = new FormData();
-            for (let i = 0; i < this.imageUrl.length; i++) {
-                const file = this.dataURItoBlob(this.imageUrl[i]); // Chuyển base64 thành dạng Blob
-                formData.append('file', file);
-            }
-            formData.append('POST_Id', this.uuid());
-            formData.append('USER_Id', this.userid);
-            formData.append('POST_Content', this.textarea)
-            formData.append('POST_AccessModifies', this.selected.value)
             try {
-                await AuthenticationService.uploadImgPost(formData);
-                this.imageUrl = [];
-                this.textarea = '';
-                this.$emit('closePost');
-            } catch (error) {
-                console.log(error);
-            }
+                this.isLoadingSubmit = true;
+                const formData = new FormData();
 
+                for (let i = 0; i < this.imageUrl.length; i++) {
+                    const file = this.dataURItoBlob(this.imageUrl[i]);
+                    formData.append('file', file);
+                }
+
+                formData.append('POST_Id', this.uuid());
+                formData.append('USER_Id', this.userid);
+                formData.append('POST_Content', this.textarea);
+                formData.append('POST_AccessModifies', this.selected.value);
+
+                // Kiểm tra phản hồi từ API
+                const response = await AuthenticationService.uploadImgPost(formData);
+                console.log(response)
+                if (response && response.data && response.data.status) {
+                    this.imageUrl = [];
+                    this.textarea = '';
+                    this.$emit('closePost');
+                    alert("Your post is live!")
+                } else {
+                    alert("Ohh!, " + response.data.message)
+                }
+            } catch (error) {
+                console.error("Lỗi trong submitForm:", error);
+                this.$emit('errorPost', 'Lỗi khi kết nối tới máy chủ.');
+            } finally {
+                this.isLoadingSubmit = false;
+            }
         },
         dataURItoBlob(dataURI) {
             const byteString = atob(dataURI.split(',')[1]);
@@ -194,6 +204,28 @@ export default {
 </script>
 
 <style>
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-image: linear-gradient(90deg, transparent, rgb(0, 255, 221));
+    background-size: 200% 100%;
+    animation: loading 2s linear infinite;
+    z-index: 9999999999999999999999999999999999999999999999;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
 .res-down {
     transform: rotate(90deg) !important;
     transition: transform 0.3s ease;
@@ -394,6 +426,7 @@ export default {
     margin: 0;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .frame-post .char .tittle-char .move {
@@ -411,6 +444,7 @@ export default {
     border: none;
     background-color: white;
     border-radius: 22px;
+    cursor: pointer;
 }
 
 .frame-post .char .tittle-char .share:hover {
