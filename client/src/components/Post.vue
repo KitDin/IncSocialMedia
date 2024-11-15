@@ -53,25 +53,29 @@
                     </div>
 
                     <div class="more">
-                        <textarea v-model="textarea" placeholder="Write a caption..." name="textarea" id="textarea"
-                            class="more-text" :oninput="change()"></textarea>
+
+                        <textarea v-model="textarea" ref="textarea" placeholder="Write a caption..." name="textarea"
+                            id="textarea" class="more-text" :oninput="change()" @keyup="handleKeyup($event)"></textarea>
                         <div class="more-option">
-                            <p class="hashtag">#</p>
+                            <p class="hashtag" @click="openHashTags()">#</p>
                             <p class="limit-char" :class="!changeColorLimit ? `color-limit` : `change-color-limit`">
                                 {{
                                     char
                                 }}/2.200</p>
                         </div>
+                        <HashTag v-if="isHashtag" :hashTags="hashTagsDataSearch" @getHasgTag='getHasgTag'
+                            :isLoading="isLoading" />
                     </div>
                 </div>
             </div>
         </div>
-        <div class="hash-tag-selected"></div>
     </div>
 </template>
 
 <script>
 import AuthenticationService from '../services/AuthenticationService';
+import HashTag from '../components/HashTag.vue'
+import { debounce } from 'lodash';
 
 export default {
     data() {
@@ -89,11 +93,74 @@ export default {
             selected: { label: "Public", value: "Public", icon: "bi bi-globe-asia-australia" },
             options: [
                 { label: "Public", value: "Public", icon: "bi bi-globe-asia-australia" },
-                { label: "Private", value: "Private", icon: "bi bi-person-lock" }
+                { label: "Private", value: "Private", icon: "bi bi-person-lock" },
+                { label: "Friends", value: "Friends Only", icon: "bi bi-people-fill" }
             ],
             showSelectFrame: false,
+            isHashtag: false,
+            hashTagsDataSearch: [],
+            hashTagsSelected: [],
+            isLoading: true,
         }
     }, methods: {
+        handleKeyup(event) {
+            const cursorPosition = event.target.selectionStart;
+            const textBeforeCursor = this.textarea.slice(0, cursorPosition);
+            const textAfterCursor = this.textarea.slice(cursorPosition);
+
+            // Xác định từ chứa con trỏ bằng cách tìm khoảng trắng hoặc đầu dòng
+            const startOfWord = textBeforeCursor.lastIndexOf(" ") + 1;
+            const endOfWord = textAfterCursor.indexOf(" ") === -1 ? this.textarea.length : cursorPosition + textAfterCursor.indexOf(" ");
+
+            // Lấy từ hiện tại chứa con trỏ
+            let currentWord = this.textarea.slice(startOfWord, endOfWord);
+
+            // Kiểm tra xem từ chứa con trỏ có bắt đầu bằng # không
+            if (currentWord.startsWith("#")) {
+                this.isHashtag = true;
+                this.isLoading = true; // Bật loading trước khi gọi API
+                this.debouncedFetchHashtag(currentWord);
+            } else {
+                this.isHashtag = false;
+            }
+        },
+        // Hàm debounce tìm kiếm hashtag
+        debouncedFetchHashtag: debounce(async function (currentWord) {
+            try {
+                const hashtag = await AuthenticationService.getHashTag(currentWord);
+                if (hashtag.data.status) {
+                    this.hashTagsDataSearch = hashtag.data.hashtag;
+                } else {
+                    this.hashTagsDataSearch = [];
+                }
+            } catch (error) {
+                console.error("Error fetching hashtags:", error);
+            } finally {
+                this.isLoading = false; // Tắt loading sau khi hoàn tất
+            }
+        }, Math.floor((Math.random() * 800) + 500)),
+        getHasgTag(hashTag) {
+            const cursorPosition = this.$refs.textarea.selectionStart;
+            const textBeforeCursor = this.textarea.slice(0, cursorPosition);
+            const textAfterCursor = this.textarea.slice(cursorPosition);
+
+            // Xóa từ `#` hoặc `#abc` đang được nhập
+            const startOfWord = textBeforeCursor.lastIndexOf(" ") + 1;
+            this.textarea = textBeforeCursor.slice(0, startOfWord) + textAfterCursor;
+
+            // Chèn hashtag đã chọn và một khoảng trắng
+            this.textarea = this.textarea.slice(0, startOfWord) + hashTag.hashtag_name + " " + textAfterCursor;
+
+            // Cập nhật danh sách hashtag đã chọn
+            this.hashTagsSelected.push(hashTag);
+
+            // Đặt lại `isHashtag` để ẩn danh sách hashtag
+            this.isHashtag = false;
+        },
+        openHashTags() {
+            this.isHashTag != this.isHashtag
+            this.textarea += "#"
+        },
         loadimg(user) {
             if (user && user.USER_AvatarURL) {
                 return require(`../../../server/public/uploads/avatar/${user.USER_AvatarURL}`);
@@ -125,6 +192,7 @@ export default {
         async submitForm() {
             try {
                 this.isLoadingSubmit = true;
+                const textWithoutHashtags = this.textarea.replace(/#\w+/g, '').trim();
                 const formData = new FormData();
 
                 for (let i = 0; i < this.imageUrl.length; i++) {
@@ -134,9 +202,9 @@ export default {
 
                 formData.append('POST_Id', this.uuid());
                 formData.append('USER_Id', this.userid);
-                formData.append('POST_Content', this.textarea);
+                formData.append('POST_Content', textWithoutHashtags);
                 formData.append('POST_AccessModifies', this.selected.value);
-
+                formData.append('HashTags', JSON.stringify(this.hashTagsSelected));
                 // Kiểm tra phản hồi từ API
                 const response = await AuthenticationService.uploadImgPost(formData);
                 console.log(response)
@@ -179,10 +247,24 @@ export default {
             this.showSelectFrame = false
         }
     }, watch: {
-        textarea(value) {
-            this.char = value.length;
+        textarea(newText) {
+            this.char = newText.length;
+            const hashtagsInTextarea = newText.match(/#\w+/g) || [];
+
+            // So sánh hashTagsSelected với hashtagsInTextarea để cập nhật
+            this.hashTagsSelected.forEach((tag, index) => {
+                const tagIndexInTextarea = hashtagsInTextarea.indexOf(tag.hashtag_name);
+                if (tagIndexInTextarea === -1) {
+                    // Xóa một lần xuất hiện của hashtag khỏi hashTagsSelected nếu nó bị xóa khỏi textarea
+                    this.hashTagsSelected.splice(index, 1);
+                } else {
+                    // Xóa hashtag từ hashtagsInTextarea để tránh kiểm tra trùng lặp sau
+                    hashtagsInTextarea.splice(tagIndexInTextarea, 1);
+                }
+            });
         }
-    }, async mounted() {
+    }
+    , async mounted() {
         const token = localStorage.getItem("token");
 
         if (token) {
@@ -199,11 +281,17 @@ export default {
             this.$router.push("/");
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data
-    }
+    }, components: { HashTag }
 }
 </script>
 
 <style>
+.hashtag-highlight {
+    color: #1E90FF;
+    /* Màu xanh dương cho hashtag */
+    font-weight: bold;
+}
+
 .loader {
     position: fixed;
     top: 0;
@@ -332,18 +420,23 @@ export default {
 
 .frame-select .select .option {
     font-size: 13px;
+    display: flex;
     padding: 6px 0;
     padding-right: 26px;
     padding-left: 26px;
+    background-color: white;
+    z-index: 5000;
 }
 
+.frame-select .select .option:nth-child(2),
 .frame-select .select .option:last-child {
     border-top: 1px silver solid;
 }
 
 .frame-select .select .option:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgb(244, 244, 244);
 }
+
 
 .frame-select .select .option .icon-option {
     font-size: 15px !important;
@@ -512,7 +605,7 @@ export default {
 
 .content-char .status .more {
     width: 100%;
-    padding: 0 16px;
+    /* padding: 0 16px; */
     display: flex;
     flex-direction: column;
 }
@@ -522,23 +615,26 @@ export default {
 }
 
 .status .more .more-text {
+    padding: 0 16px;
     border: 0;
     width: 100%;
     height: 170px;
     resize: none;
-    border-bottom: silver 1px solid;
     margin-bottom: 4px;
 }
 
 .content-char .status .more .more-option {
     display: flex;
+    padding: 0 16px;
     justify-content: space-between;
     align-items: center;
     height: 32px;
+    border-bottom: silver 1px solid;
 }
 
 .content-char .status .more .more-option .hashtag {
     font-size: 14px;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;

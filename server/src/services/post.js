@@ -61,6 +61,15 @@ export async function postStatusImg(postId, img) {
   );
 }
 
+export async function postHashtag(postId, hashtag) {
+  const [row] = await pool.query(
+    `
+  insert into  __POST_TOPICS (POST_ID , hashtag_id) value (?,?);
+  `,
+    [postId, hashtag]
+  );
+}
+
 export async function postStatusContent(postId, userId, content, modifie) {
   await pool.query(
     `insert into __POSTs(POST_Id,USER_id,POST_Content,POST_AccessModifies, POST_Time) 
@@ -100,9 +109,13 @@ FROM (
       "select * from __likes where POST_id = ?",
       [post.POST_Id]
     );
+
+    const hashtag = await getHashTagsOfPost(post.POST_Id);
+
     const postWithImages = {
       content: post,
       images: images.map((image) => image.POST_ImgURL),
+      hashtag,
       likes: likes.map((like) => like.USER_id),
       countLike: likes.length,
       countComment: countComment[0].total_count,
@@ -144,9 +157,12 @@ FROM (
       "select * from __likes where POST_id = ?",
       [post.POST_Id]
     );
+    const hashtag = await getHashTagsOfPost(post.POST_Id);
+
     const postWithImages = {
       content: post,
       images: images.map((image) => image.POST_ImgURL),
+      hashtag,
       likes: likes.map((like) => like.USER_id),
       countLike: likes.length,
       countComment: countComment[0].total_count,
@@ -271,3 +287,17 @@ FROM (
     console.error(error);
   }
 }
+
+export const getHashTagsOfPost = async (postId) => {
+  const query = `SELECT 
+                  ht.hashtag_id, 
+                  ht.hashtag_name
+                FROM __POST_TOPICS pt JOIN __HASHTAGS ht on pt.hashtag_id = ht.hashtag_id 
+                where post_id = ? ;`;
+  try {
+    const [getHastTagByPost] = await pool.query(query, [postId]);
+    return getHastTagByPost.length > 0 ? getHastTagByPost : [];
+  } catch (error) {
+    console.error(error);
+  }
+};

@@ -5,6 +5,7 @@ import {
   register,
   login,
   registerInfor,
+  getConversationUnreadController,
 } from "../controllers/user.controller.js";
 
 import {
@@ -39,6 +40,7 @@ import {
 } from "../controllers/message.controller.js";
 import middlewareController from "../middleware/test.middleware.js";
 import { moderateContentController } from "../controllers/moderate.controller.js";
+import { getHashtagByNameController } from "../controllers/hashtag.controller.js";
 
 export const router = express.Router();
 
@@ -77,10 +79,12 @@ router
   .post(postComment)
   .get(getComments);
 
-router.route("/message/:id").get(getConversationsOffAUser);
+// router.route("/message/:id").get(getConversationsOffAUser);
 
 router
   .route("/message/:id")
   .get(getConversationsOffAUser)
   .post(createComversation)
   .put(deleteConversation);
+router.route("/notifications/message/:id").get(getConversationUnreadController);
+router.route("/hashtag/search").get(getHashtagByNameController);

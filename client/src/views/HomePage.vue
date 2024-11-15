@@ -43,12 +43,16 @@
                             {{ shortenContent(post.content.POST_Content) }}
                         </span>
                         <span v-else>
-                            {{ post.content.POST_Content }}</span>
-                        <span class="option-s-h" v-if="post.showFullContent">
-                            <p>...</p>
-                            <p @click="post.showFullContent = false">more</p>
+                            {{ post.content.POST_Content }}
+                            <span v-for="(tag, index) in post.hashtag" :key="index" class="hash-tag-post">
+                                {{ tag.hashtag_name }} </span>
                         </span>
-
+                    </span>
+                    <span class="option-s-h" v-if="post.showFullContent" @click="post.showFullContent = false">
+                        ... More
+                    </span>
+                    <span class="option-s-h" v-if="!post.showFullContent" @click="post.showFullContent = true">
+                        ... Shorten
                     </span>
                 </div>
                 <div @click="showCommentBar(post)" class="allcomment">View {{ post.countComment > 0 ? post.countComment
@@ -85,6 +89,7 @@ export default {
             posts: [],
             postId_Comment: [],
             showComment: false,
+            hashTagsDataSearch: [{ hashtag_name: '#dichoi' }, { hashtag_name: '#dichoi' }, { hashtag_name: '#dichoi' }, { hashtag_name: '#dichoi' }],
         }
     },
     components: {
@@ -197,10 +202,10 @@ export default {
                     post.activeIndex = Math.floor(scrollPosition / imageWidth);
                 }, 0);
             }
-        }, shortenContent(content) {
+        }, shortenContent(content, hashtags) {
             const words = content.split(' '); // Tách chuỗi thành mảng các từ
             const shortenedWords = words.slice(0, 15); // Lấy 15 từ đầu tiên
-            return shortenedWords.join(' '); // Kết hợp lại để tạo nội dung cắt giảm
+            return `${shortenedWords.join(' ')}`;
         }, isContentOverFifteenWords(content) {
             const words = content.split(' '); // Tách chuỗi thành mảng các từ
             return words.length > 15; // Kiểm tra xem mảng có nhiều hơn 15 từ hay không
@@ -226,10 +231,8 @@ export default {
             });
         },
 
-        startPolling() {
-            this.polling = setInterval(async () => {
-                await this.fetchPosts(); // Ensure posts are fetched and updated reactively
-            }, 15000);
+        async startPolling() {
+            await this.fetchPosts(); // Ensure posts are fetched and updated reactively
         },
 
         stopPolling() {
@@ -451,12 +454,22 @@ export default {
 }
 
 
-.option-s-h p {
+.option-s-h {
     margin: 0;
     color: #737373;
+    cursor: pointer;
 }
 
-.option-s-h p:last-child {
+.option-s-h:hover {
+    color: #3d3d3d;
+}
+
+.hash-tag-post {
+    color: #0095f6;
     cursor: pointer;
+
+    &:hover {
+        color: #005994;
+    }
 }
 </style>

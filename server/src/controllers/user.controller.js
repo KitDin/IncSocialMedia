@@ -20,6 +20,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import jwt from "jsonwebtoken";
+import {
+  getConversationOfAUser,
+  getConversationUnread,
+  getMessagesUnreadByConversationId,
+} from "../services/chatting.js";
 
 export async function getUsersController(req, res) {
   const users = await getUsers();
@@ -30,16 +35,16 @@ export async function getUserController(req, res) {
   const id = req.params.id;
   // const id = req.user.USER_Id;
   const user = await getUserById(id);
-  const friendRequests = await getFullInforUserAllUser(user.USER_Id);
-  const isSender = await isSenderRequest(user.USER_Id);
-  const listFriend = await ListFriend(user.USER_Id);
+  const friendRequests = await getFullInforUserAllUser(user?.USER_Id);
+  const isSender = await isSenderRequest(user?.USER_Id);
+  const listFriend = await ListFriend(user?.USER_Id);
   const response = {
     ...user,
     friendRequests: friendRequests.map((friend) => friend.USER_Id),
     isSenderRequest: isSender.map((friend) => friend.USER_RECID),
     listFriend: listFriend.map((friend) => friend.friend_user_id),
   };
-  res.send(response);
+  res.json(response);
 }
 
 function isUsernameValid(username) {
@@ -216,3 +221,28 @@ export async function login(req, res) {
     });
   }
 }
+
+export const getConversationUnreadController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Kiểm tra giá trị trả về của getConversationOfAUser
+    const conversationsData = await getConversationOfAUser(id);
+
+    // Đảm bảo rằng conversationsData là một mảng và có phần tử đầu tiên là mảng
+    const conversations = Array.isArray(conversationsData)
+      ? conversationsData[0]
+      : [];
+
+    let numNotifi = 0;
+    for (const conversation of conversations) {
+      if (await getMessagesUnreadByConversationId(conversation.CON_ID, id))
+        numNotifi++;
+    }
+
+    res.json(numNotifi);
+  } catch (error) {
+    console.error("Error fetching unread conversations:", error);
+    res.status(500).json({ error: "Error fetching unread conversations" });
+  }
+};

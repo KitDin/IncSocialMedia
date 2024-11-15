@@ -87,7 +87,7 @@
                             @click="char > 0 ? postComment() : null">Post</button>
                         <div v-if="showLoader" class="lds-dual-ring"></div>
                         <i v-if="showIcon" class="tick-icon bi bi-check-circle-fill"
-                            :class="showIcon ? `rotate-scale-down` : ``"></i>
+                            :class="showIcon ? 'heartbeat' : ''"></i>
                     </div>
                 </div>
             </div>
@@ -118,7 +118,7 @@ export default {
             this.textComment = '';
             this.repliedUsername = '';
             this.replyComment = '';
-            this.textComment = !reply ? `@${comment.comment.USER_NickName}` : `@${reply.USER_NickName}`;
+            this.textComment = !reply ? `@${comment.comment.USER_NickName + ' '}` : `@${reply.USER_NickName + ' '}`;
             this.repliedUsername = !reply ? comment.comment.USER_id : reply.USER_id;
             this.replyComment = comment.comment.comment_id;
             console.log(this.repliedUsername);
@@ -258,17 +258,6 @@ export default {
                 console.error("Error fetching comments:", error);
             }
         },
-
-        // startPolling() {
-        //     this.polling = setInterval(async () => {
-        //         await this.fetchComments();  // Refresh comments reactively
-        //     }, 15000); // Poll every 1 second (adjust as needed)
-        // },
-
-        // Stops the polling when necessary
-        // stopPolling() {
-        //     clearInterval(this.polling); // Clear the interval
-        // }
     }, props: {
         userid: String,
         postId: Object,
@@ -290,8 +279,90 @@ export default {
 </script>
 
 <style>
+.heartbeat {
+    -webkit-animation: heartbeat 1.5s ease-in-out infinite both;
+    animation: heartbeat 1.5s ease-in-out infinite both;
+}
+
+@-webkit-keyframes heartbeat {
+    from {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        -webkit-transform-origin: center center;
+        transform-origin: center center;
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+
+    10% {
+        -webkit-transform: scale(0.91);
+        transform: scale(0.91);
+        -webkit-animation-timing-function: ease-in;
+        animation-timing-function: ease-in;
+    }
+
+    17% {
+        -webkit-transform: scale(0.98);
+        transform: scale(0.98);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+
+    33% {
+        -webkit-transform: scale(0.87);
+        transform: scale(0.87);
+        -webkit-animation-timing-function: ease-in;
+        animation-timing-function: ease-in;
+    }
+
+    45% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+}
+
+@keyframes heartbeat {
+    from {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        -webkit-transform-origin: center center;
+        transform-origin: center center;
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+
+    10% {
+        -webkit-transform: scale(0.91);
+        transform: scale(0.91);
+        -webkit-animation-timing-function: ease-in;
+        animation-timing-function: ease-in;
+    }
+
+    17% {
+        -webkit-transform: scale(0.98);
+        transform: scale(0.98);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+
+    33% {
+        -webkit-transform: scale(0.87);
+        transform: scale(0.87);
+        -webkit-animation-timing-function: ease-in;
+        animation-timing-function: ease-in;
+    }
+
+    45% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+}
+
 .CommentPost-container {
-    width: 75%;
     background-color: white;
     position: fixed;
     top: 50%;

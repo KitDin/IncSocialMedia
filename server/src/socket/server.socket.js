@@ -4,9 +4,11 @@ import {
   saveMessage,
   searchConversation,
   searchingUser,
+  updateUnreadMessagesInConversation,
 } from "../services/chatting.js";
 
 export function socket_server(io) {
+  const userConversations = {};
   io.on("connection", (socket) => {
     socket.on("userConnected", async ({ USER_ID, CON_ID, RECEIVER_ID }) => {
       try {
@@ -17,10 +19,11 @@ export function socket_server(io) {
           CON_ID
         );
 
+        await updateUnreadMessagesInConversation(conId, USER_ID);
         // Join the socket to the conversation room
         socket.join(conId);
-
-        console.log(conId, "\n\n\n\n\n");
+        userConversations[USER_ID] = conId;
+        console.log({ sender: USER_ID, RECEIVER_ID, CON_ID });
       } catch (error) {
         console.error("Error in sending message:", error);
       }
@@ -40,7 +43,10 @@ export function socket_server(io) {
         await saveMessage(conId, SENDER_ID, MESSAGE);
 
         io.to(conId).emit("newMessage", message);
-
+        if (userConversations[RECEIVER_ID] === conId) {
+          // Nếu người nhận đang ở cuộc hội thoại đó, đánh dấu là "đã xem"
+          await updateUnreadMessagesInConversation(conId, RECEIVER_ID);
+        }
         // console.log(conId, "\n\n\n\n\n");
       } catch (error) {
         console.error("Error in sending message:", error);
@@ -91,6 +97,13 @@ export function socket_server(io) {
 
     socket.on("disconnect", () => {
       console.log("A user disconnected:", socket.id);
+      for (const [userId, conversationId] of Object.entries(
+        userConversations
+      )) {
+        if (socket.id === userId) {
+          delete userConversations[userId];
+        }
+      }
     });
   });
 }

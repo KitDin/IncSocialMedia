@@ -8,10 +8,14 @@
                     :class="{ active: link.link_to === $route.name, activeLine: link.status }"
                     @click="handleItemClick(link)" style="cursor: pointer;">
                     <!-- <RouterLink to="/profile" /> -->
-                    <i v-if="link.icon" ref="i" class="icon" :class="getActiveIconClass(link)"></i>
+
+                    <i v-if="link.icon" ref="i" class="icon" :class="getActiveIconClass(link)">
+                    </i>
                     <img v-else :src="user.USER_AvatarURL != null ? loadimg(user) : ''" alt="" class="avatar" :class="{
                         activeAvatar: link.link_to === $route.name && $route.name === 'Profile'
                     }">
+                    <div class="circle-notification" v-if="link.id === 3 && notificationMessages > 0">{{
+                        notificationMessages }}</div>
                     <p class="text" v-if="!is_expanded">{{ link.text }}</p>
                 </li>
             </ul>
@@ -56,6 +60,7 @@ import { RouterLink } from 'vue-router'
 import Search from './Search.vue'
 import Post from './Post.vue';
 import AlertComponents from './AlertComponents.vue';
+import socket from '../services/Socket.io';
 
 
 let activeItem = null;
@@ -70,10 +75,11 @@ export default {
             showSearchBar: false,
             isAlert: true,
             alertMessage: '',
+            notificationMessages: 0,
             links: [
-                { id: 1, icon: "bi bi-house-door", icon_fill: "bi bi-house-fill", text: "Home", link_to: "Home" },
+                { id: 1, icon: "bi bi-house-door", icon_fill: "bi bi-house-door-fill", text: "Home", link_to: "Home" },
                 { id: 2, icon: "bi bi-search-heart", icon_fill: "bi bi-search-heart-fill", text: "Search", link_to: null, status: false },
-                { id: 3, icon: "bi bi-chat-dots", icon_fill: "bi bi-chat-fill", text: "Messages", link_to: "Messages" },
+                { id: 3, icon: "bi bi-chat-dots", icon_fill: "bi bi-chat-dots-fill", text: "Messages", link_to: "Messages" },
                 // { id: 4, icon: "bi bi-heart", icon_fill: "bi bi-heart-fill", text: "Notifications", link_to: null },
                 { id: 5, icon: "bi bi-plus-circle", icon_fill: "bi bi-plus-circle-fill", text: "Create", link_to: null, status: false },
                 { id: 6, text: "Profile", avatar: this.user ? this.user.USER_AvatarURL : '', link_to: "Profile" },
@@ -167,7 +173,10 @@ export default {
             this.$router.push("/");
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data;
-        // console.log(this.links);
+        setInterval(async () => {
+            this.notificationMessages = (await AuthenticationService.getNumberNotification(this.userid)).data
+
+        }, 100)
     },
     components: { RouterLink, Search, Post, AlertComponents },
 }
@@ -560,6 +569,7 @@ export default {
 .navcol .more-setup,
 .navcol .normal-setup ul li {
     display: flex;
+    position: relative;
     align-items: center;
     gap: 16px;
     font-size: 17px;
@@ -576,18 +586,19 @@ export default {
 
 .navcol .more-setup i,
 .navcol .normal-setup ul li i {
-    font-size: 22px;
+    font-size: 25px;
     width: 26px;
+    position: relative;
 }
 
 .more-setup:hover,
 ul li:hover {
-    background-color: rgba(192, 192, 192, 0.304);
+    background-color: rgba(220, 220, 220, 0.176);
     border-radius: 8px;
 }
 
 .navcol .normal-setup ul li:hover i {
-    font-size: 26px;
+    font-size: 28px;
 }
 
 
@@ -625,8 +636,9 @@ ul li:hover {
 }
 
 .active {
-    background-color: silver;
+    background-color: rgba(192, 192, 192, 0.281);
     border-radius: 8px;
+    font-weight: 600;
 }
 
 .activeLine {
@@ -637,6 +649,25 @@ ul li:hover {
 .activeAvatar {
     border: 2px solid black;
 }
+
+.navmenu .navli .circle-notification {
+    font-size: 10px;
+    color: #FFFFFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #FF0304;
+    height: 16px;
+    width: 16px;
+    position: absolute;
+    border-radius: 50%;
+    outline: #FFFFFF solid 3px;
+    top: 50%;
+    left: 26px;
+    transform: translateY(-95%);
+}
+
+
 
 /* .componentPost {
     position: fixed;

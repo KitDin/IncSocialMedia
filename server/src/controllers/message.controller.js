@@ -4,6 +4,8 @@ import {
   checkOrCreateConversation,
   deleteConversationById,
   getConversationById,
+  getMessagesUnreadByConversationId,
+  updateUnreadMessagesInConversation,
 } from "../services/chatting.js";
 import { decodeBase64 } from "./polices/police.uid.js";
 
@@ -88,7 +90,21 @@ export async function getConversationsOffAUser(req, res) {
       }
     } else {
       const [conversations] = await getConversationOfAUser(userId);
-      res.json(conversations);
+
+      // Duyệt qua từng hội thoại và kiểm tra trạng thái chưa đọc
+      const conversationsWithUnreadStatus = [];
+      for (const conversation of conversations) {
+        const isUnread = await getMessagesUnreadByConversationId(
+          conversation.CON_ID,
+          userId
+        );
+        conversationsWithUnreadStatus.push({
+          ...conversation,
+          isUnread: isUnread, // Thêm trạng thái chưa đọc vào từng hội thoại
+        });
+      }
+
+      res.json(conversationsWithUnreadStatus);
     }
   } catch (error) {
     res.status(500).json({ error: "An error occurred" });
@@ -126,4 +142,10 @@ export async function deleteConversation(req, res) {
   } catch (error) {
     res.json({ status: false, error });
   }
+}
+
+export async function updateUnreadMessagesInConversationController(req, res) {
+  try {
+    // const update = await updateUnreadMessagesInConversation()
+  } catch (error) {}
 }

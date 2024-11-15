@@ -38,9 +38,11 @@
 
             <!-- Bạn bè friends-->
             <div class="user-frame" ref="userFrame" @scroll="onScroll" v-if="optionList === 1">
-                <div class="isLoading" v-show="isSearching">
+                <!-- <div class="isLoading">
                     <span class="loader"></span>
-                </div>
+                </div> -->
+
+                <LoadingPage v-show="isSearching" />
                 <div class="user" v-for="friend in friends" :key="friend.USER_ID"
                     v-show="!isSearching && friends.length > 0">
                     <img :src="loadImg(friend)" alt="" @click="goProfileOther(friend)">
@@ -97,6 +99,7 @@
 import AuthenticationService from '../services/AuthenticationService';
 import AlertComponents from './AlertComponents.vue';
 import { debounce } from 'lodash';
+import LoadingPage from './LoadingPage.vue';
 export default {
     data() {
         return {
@@ -318,7 +321,7 @@ export default {
             type: Number,
             default: 1
         }
-    }, components: { AlertComponents }
+    }, components: { AlertComponents, LoadingPage }
 }
 </script>
 
@@ -590,7 +593,6 @@ export default {
 }
 
 .isLoading {
-
     padding: 15px 0;
     display: flex;
     justify-content: center;

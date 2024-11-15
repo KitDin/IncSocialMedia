@@ -17,19 +17,21 @@
                         :ref="'conversation-' + conversation.CON_ID"
                         :class="conversation.CON_ID === deConversation ? 'choose' : ''">
                         <img class="ImgUser" :src="loadimg(conversation, 0)" alt="">
-                        <div class="InforUser">
-                            <div class="NameUser">{{ conversation.USER_NICKNAME }}</div>
+                        <div class="InforUser" :class="conversation.isUnread ? 'unread-text' : ''">
+                            <div class="NameUser">{{ conversation.USER_NICKNAME }} <div v-show="conversation.isUnread"
+                                    class="unread-message"></div>
+                            </div>
                             <div class="NewMessages">
                                 <p v-if="conversation.MESSAGE !== '&altH1' && conversation.MESSAGE !== null"> {{
                                     conversation.MESSAGE }}
-                                    <span class="DotCenter">•</span> {{
+                                    <span class="DotCenter">• {{
                                         formatTimeConversation(conversation.CREATED_AT)
-                                    }}
+                                    }}</span>
                                 </p>
                                 <p v-else-if="conversation.MESSAGE !== null">
                                     <i class="bi bi-heart-fill" style="color: red;"></i>
-                                    <span class="DotCenter">•</span> {{ formatTimeConversation(conversation.CREATED_AT)
-                                    }}
+                                    <span class="DotCenter">• {{ formatTimeConversation(conversation.CREATED_AT)
+                                        }}</span>
                                 </p>
                                 <p v-else>Chat Together, Create Our Own Stories!
                                 </p>
@@ -69,9 +71,11 @@
 
             <div id="Messages" v-if="receiverUserId">
                 <div class="MessagesOfUser">
-                    <img class="ImgUser" :src="loadimg(receiverUserId, 1)" alt="">
+                    <img @click="goProfile(receiverUserId.USER_Id)" class="ImgUser" :src="loadimg(receiverUserId, 1)"
+                        alt="">
                     <div class="InforUser">
-                        <div class="UserName">{{ receiverUserId.USER_NickName }}</div>
+                        <div @click="goProfile(receiverUserId.USER_Id)" class="UserName">{{ receiverUserId.USER_NickName
+                            }}</div>
                         <i class="bi bi-info-circle"></i>
                     </div>
                 </div>
@@ -91,8 +95,13 @@
 
                     <div v-if="showInformationReceiverUser && conversationCreatedTime !== 'null'"
                         class="time-difference timeCreatedTimeConversatin">
-                        You and {{ receiverUserId.USER_NickName + " have been in contact since \t" }} <b> {{
-                            formatTime(conversationCreatedTime) }} </b>
+                        You and <p @click="goProfile(receiverUserId.USER_Id)"
+                            style="color: black; font-weight: 600;margin: 0 2px 0 2px; cursor: pointer;">
+                            {{ receiverUserId.USER_NickName }}
+                        </p> have been in contact since
+                        <p style="color: black; font-weight: 600;margin: 0 0 0 2px;">
+                            {{ formatTime(conversationCreatedTime) }}
+                        </p>
                     </div>
 
                     <div v-if="showInformationReceiverUser && conversationCreatedTime === 'null'"
@@ -317,7 +326,10 @@ export default {
                 path: this.$route.path,
                 query: { cid: Security.encodeID(conId) }
             });
-
+            const conversation = this.conversations.find(c => c.CON_ID === conId);
+            if (conversation) {
+                conversation.isUnread = false;
+            }
             this.page = 1;
             this.messages = [];
             this.showInformationReceiverUser = false;
@@ -551,9 +563,9 @@ export default {
             this.conversations = (await AuthenticationService.getConversations(this.currentUserId)).data;
         }, goProfile(userId) {
             if (userId == this.currentUserId) {
-                this.$router.push(`/profile/${this.currentUserId}`)
+                this.$router.push(`/profile`)
             } else {
-                this.$router.push(`/profile/${this.currentUserId}/${userId}`)
+                this.$router.push(`/profile/${userId}`)
             }
         }
     }, async mounted() {
@@ -759,6 +771,24 @@ export default {
     width: 80%;
 }
 
+#ListUser .List .InforUser .NameUser {
+    display: flex;
+}
+
+.unread-text {
+    font-weight: 600;
+}
+
+#ListUser .List .InforUser .NameUser .unread-message {
+    position: relative;
+    top: 1px;
+    left: 2px;
+    height: 6px;
+    width: 6px;
+    background-color: #3797F0;
+    border-radius: 50%
+}
+
 .NewMessages p {
     margin: 0;
     color: #737373;
@@ -771,12 +801,11 @@ export default {
 }
 
 #Messages .MessagesOfUser {
-    height: 70px;
-    padding: 0 16px;
+    /* height: 70px; */
+    padding: 8px 16px;
     display: flex;
     margin: auto 0;
     border-bottom: 1px solid silver;
-    cursor: pointer;
 }
 
 #Messages .MessagesOfUser .ImgUser {
@@ -785,6 +814,7 @@ export default {
     height: 44px;
     object-fit: cover;
     margin: auto 6px;
+    cursor: pointer;
 }
 
 #Messages .MessagesOfUser .InforUser {
@@ -797,11 +827,13 @@ export default {
 }
 
 #Messages .MessagesOfUser .InforUser .UserName {
+    cursor: pointer;
     margin: 6px;
 }
 
 #Messages .MessagesOfUser .InforUser i {
     font-size: 25px;
+    cursor: pointer;
 }
 
 .three-dots {
@@ -825,6 +857,10 @@ export default {
     height: 78px;
     width: 100%;
     display: flex;
+}
+
+.DotCenter {
+    font-weight: normal !important;
 }
 
 .InputMessages .InputFrame {

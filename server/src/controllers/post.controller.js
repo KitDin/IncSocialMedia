@@ -10,13 +10,15 @@ import {
   getCommentInAPost,
   getReplyComment,
   postReplyComments,
+  postHashtag,
 } from "../services/post.js";
 
 import { getUserById } from "../services/user.js";
 
 export async function postStatus(req, res) {
   const files = req.files.map((file) => file.filename);
-  const { POST_Id, USER_Id, POST_Content, POST_AccessModifies } = req.body;
+  const { POST_Id, USER_Id, POST_Content, POST_AccessModifies, HashTags } =
+    req.body;
   try {
     await postStatusContent(
       POST_Id,
@@ -24,9 +26,16 @@ export async function postStatus(req, res) {
       POST_Content,
       POST_AccessModifies
     );
+
     for (let index = 0; index < files.length; index++) {
       await postStatusImg(POST_Id, files[index]);
     }
+    const HashTagsOb = JSON.parse(HashTags);
+
+    if (HashTagsOb.length !== 0)
+      for (let index = 0; index < HashTagsOb.length; index++) {
+        await postHashtag(POST_Id, HashTagsOb[index].hashtag_id);
+      }
 
     res.json({
       status: true,

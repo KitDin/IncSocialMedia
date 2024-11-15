@@ -99,5 +99,13 @@ export default {
   },
   verifyToken(token) {
     return verifyAPI().post(`/verifytoken`, { token });
+  },
+  getHashTag(search) {
+    return Api().get(`hashtag/search`, {
+      params: { search: search }
+    });
+  },
+  getNumberNotification(id) {
+    return Api().get(`/notifications/message/${id}`);
   }
 };

@@ -33,13 +33,13 @@
                 <div class="scale-up-hor-left" v-if="user.rabang"></div>
                 <i class="bi bi-check-circle-fill rotate-scale-up" v-if="user.tick"></i>
             </div>
-            <div class="loader" v-if="user.check">
+            <!-- <div class="loader" v-if="user.check">
                 <div class="rectangles">
                     <div class="rect"></div>
                     <div class="rect"></div>
                     <div class="rect"></div>
                 </div>
-            </div>
+            </div> -->
         </div>
         <!-- <div class="succ">successful</div> -->
         <router-view />
@@ -106,7 +106,6 @@ export default {
                 return days + " days"
             }
         }, async clickaccept(user) {
-            user.check = true;
             const add = await AuthenticationService.addAFrient(this.userid, {
                 USER_SENDERID: user.USER_SenderId,
                 USER_RECID: user.USER_RecId
@@ -114,18 +113,14 @@ export default {
 
             // const add = add.data.success
             if (add.data.success) {
-                setTimeout(async () => {
 
-                    user.check = false;
-                    user.rabang = true;
-                    setTimeout(() => {
-
-                        user.tick = true;
-                        setTimeout(async () => {
-                            user.tick = false
-                            user.rabang = false;
-                            this.users = (await AuthenticationService.getUserRequest(this.userid)).data;
-                        }, 1500);
+                user.rabang = true;
+                setTimeout(() => {
+                    user.tick = true;
+                    setTimeout(async () => {
+                        user.tick = false
+                        user.rabang = false;
+                        this.users = (await AuthenticationService.getUserRequest(this.userid)).data;
                     }, 1500);
                 }, 1500);
             }

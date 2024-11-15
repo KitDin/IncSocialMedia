@@ -197,3 +197,50 @@ export async function deleteConversationById(conId) {
     return false;
   }
 }
+
+export const getMessagesUnreadByConversationId = async (
+  conversationId,
+  userId
+) => {
+  const query = `SELECT CON_ID
+          FROM __MESSAGES
+          WHERE CON_ID = ? and IS_READ = FALSE AND SENDER_ID != ?
+          GROUP BY CON_ID;`;
+
+  try {
+    const [isUnread] = await pool.query(query, [conversationId, userId]);
+    return isUnread.length > 0 ? true : false;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const updateUnreadMessagesInConversation = async (
+  conversationId,
+  userId
+) => {
+  const updateQuery = `UPDATE __MESSAGES
+    SET IS_READ = true
+    WHERE CON_ID = ? AND SENDER_ID != ?;`;
+  try {
+    const [isUnread] = await pool.query(updateQuery, [conversationId, userId]);
+    return isUnread;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+export const getConversationUnread = async (userId) => {
+  const query = `SELECT CON_ID
+                    FROM __MESSAGES
+                    WHERE IS_READ = FALSE AND SENDER_ID != ?
+                    GROUP BY CON_ID;`;
+  try {
+    const conversationsUnread = await pool.query(query, [userId]);
+    return conversationsUnread.length;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
