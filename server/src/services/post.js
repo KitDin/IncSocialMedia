@@ -55,7 +55,7 @@ FROM (
 export async function postStatusImg(postId, img) {
   const [row] = await pool.query(
     `
-  insert into  __IMGs_POST value (?,?);
+  insert into  __IMGs_POST ( POST_Id , POST_ImgURL ) value (?,?);
   `,
     [postId, img]
   );

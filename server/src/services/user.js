@@ -44,7 +44,7 @@ export async function getUserById(id) {
   select U.USER_Id, U.USER_AccountName, U.USER_Email, UI.USER_Status, 
            UI.USER_FirstName, UI.USER_SubName, UI.USER_NickName, 
            UI.USER_NumberPhone, UI.USER_AvatarURL, UI.USER_Cover, 
-           UI.USER_BrithDay from __USER U left join __USER_INFOR UI on U.USER_Id=UI.USER_Id 
+           UI.USER_BrithDay, USER_Bio from __USER U left join __USER_INFOR UI on U.USER_Id=UI.USER_Id 
            where U.USER_Id = ?;
   `,
     [id]
@@ -101,16 +101,21 @@ export async function setInforUser(
 ) {
   const insertInfor = `INSERT INTO __user_infor
     (USER_Id,USER_FirstName ,USER_SubName ,USER_NickName ,
-    USER_NumberPhone ,USER_AvatarURL ,USER_BrithDay ) 
-    VALUES (?,?,?,?,?,?,?)`;
-  const [INSERT] = await pool.query(insertInfor, [
-    USER_Id,
-    USER_FirstName,
-    USER_SubName,
-    USER_NickName,
-    USER_NumberPhone,
-    USER_AvatarURL,
-    USER_BirthDay,
-  ]);
-  return INSERT.USER_FirstName;
+    USER_NumberPhone ,USER_AvatarURL ,USER_BrithDay,USER_Bio ) 
+    VALUES (?,?,?,?,?,?,?,?)`;
+  try {
+    const [INSERT] = await pool.query(insertInfor, [
+      USER_Id,
+      USER_FirstName,
+      USER_SubName,
+      USER_NickName,
+      USER_NumberPhone,
+      USER_AvatarURL,
+      USER_BirthDay,
+      USER_Bio,
+    ]);
+    return INSERT.USER_FirstName;
+  } catch (error) {
+    console.error(error);
+  }
 }

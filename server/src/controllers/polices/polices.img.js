@@ -1,4 +1,5 @@
 import multer from "multer";
+import { v4 as uuidv4 } from "uuid"; // Import uuid
 const storageAvatar = multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, "./public/uploads/avatar");
@@ -41,7 +42,9 @@ const storageStatus = multer.diskStorage({
     }
   },
   filename: function (req, file, callback) {
-    callback(null, file.fieldname + "_" + Date.now() + ".jpg");
+    // callback(null, file.fieldname + "_" + Date.now() + ".jpg");
+    const uid = uuidv4(); // Generate a unique uid
+    callback(null, uid + ".jpg"); // Use uid as the filename
   },
 });
 

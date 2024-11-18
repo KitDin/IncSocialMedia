@@ -89,7 +89,7 @@ export default {
             posts: [],
             postId_Comment: [],
             showComment: false,
-            hashTagsDataSearch: [{ hashtag_name: '#dichoi' }, { hashtag_name: '#dichoi' }, { hashtag_name: '#dichoi' }, { hashtag_name: '#dichoi' }],
+            hashTagsDataSearch: [],
         }
     },
     components: {
@@ -230,14 +230,6 @@ export default {
                 };
             });
         },
-
-        async startPolling() {
-            await this.fetchPosts(); // Ensure posts are fetched and updated reactively
-        },
-
-        stopPolling() {
-            clearInterval(this.polling);
-        }
     },
     async mounted() {
         const token = localStorage.getItem("token");
@@ -253,7 +245,6 @@ export default {
             this.userid = response.data.userId
         } else {
             // Nếu không có token, điều hướng đến trang đăng nhập
-            console.log('>>>')
             this.$router.push("/");
 
         }
@@ -261,13 +252,8 @@ export default {
 
         // Fetch posts
         await this.fetchPosts();
-
-        // Start polling for new posts
-        this.startPolling();
     },
-    beforeDestroy() {
-        this.stopPolling(); // Clear the interval when the component is destroyed
-    }
+
 }
 </script>
 

@@ -39,8 +39,8 @@
                         <h6 class="pc-infor-fullname">{{ user_other.USER_SubName + " " + user_other.USER_FirstName }}
                         </h6>
                         <p class="pc-infor-about">
-                            Hello, wc to my profile!
-                            Add me if you want
+                            {{ user_other.USER_Bio ? user_other.USER_Bio : `Hello, wc to my profile! Add me if you
+                            want`}}
                         </p>
                     </div>
                 </div>
@@ -69,8 +69,8 @@
                             }}
                         </h6>
                         <p class="pc-infor-about">
-                            Hello, wc to my profile!
-                            Add me if you want
+                            {{ user_personal.USER_Bio ? user_personal.USER_Bio : `Hello, wc to my profile! Add me if you
+                            want`}}
                         </p>
                     </div>
                 </div>

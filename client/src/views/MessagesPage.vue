@@ -208,6 +208,11 @@ export default {
         Nav,
         NavRequestFriend,
         CreateConversation, OptionComponent
+    }, beforeRouteLeave(to, from, next) {
+        if (socket.connected) {
+            socket.disconnect(); // Ngắt kết nối hoàn toàn
+        }
+        next();
     }, methods: {
         // onTyping() {
         //     socket.emit("typing", { CON_ID: this.conversationId, SENDER_ID: this.currentUserId, RECEIVER_ID: this.receiverUserId.USER_Id });

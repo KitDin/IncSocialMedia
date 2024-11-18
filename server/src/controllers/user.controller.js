@@ -203,6 +203,8 @@ export async function login(req, res) {
       const token = jwt.sign(getid, process.env.JSON_WEB_TOKEN_KEY, {
         expiresIn: "1d",
       });
+      console.error("error");
+
       return res.json({
         status: "successful",
         mess: `/home/`,
@@ -210,12 +212,15 @@ export async function login(req, res) {
         assetToken: token,
       });
     } else {
+      console.error("error");
+
       return res.json({
         status: "error",
         error: "Your username or password is not correct",
       });
     }
   } catch (error) {
+    console.error(error);
     return res.json({
       status: error,
     });

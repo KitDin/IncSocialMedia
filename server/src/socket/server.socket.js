@@ -23,7 +23,6 @@ export function socket_server(io) {
         // Join the socket to the conversation room
         socket.join(conId);
         userConversations[USER_ID] = conId;
-        console.log({ sender: USER_ID, RECEIVER_ID, CON_ID });
       } catch (error) {
         console.error("Error in sending message:", error);
       }
@@ -47,7 +46,6 @@ export function socket_server(io) {
           // Nếu người nhận đang ở cuộc hội thoại đó, đánh dấu là "đã xem"
           await updateUnreadMessagesInConversation(conId, RECEIVER_ID);
         }
-        // console.log(conId, "\n\n\n\n\n");
       } catch (error) {
         console.error("Error in sending message:", error);
       }
@@ -96,7 +94,6 @@ export function socket_server(io) {
     });
 
     socket.on("disconnect", () => {
-      console.log("A user disconnected:", socket.id);
       for (const [userId, conversationId] of Object.entries(
         userConversations
       )) {
