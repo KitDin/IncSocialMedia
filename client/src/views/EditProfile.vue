@@ -3,18 +3,17 @@
         <Nav></Nav>
         <div class="edit-profile">
             <h2>Edit profile</h2>
-
             <!-- Profile Picture and Username Section -->
             <div class="profile-header">
                 <div class="profile">
                     <div class="profile-photo">
-                        <img :src="profileImage" alt="Profile Photo" />
+                        <img :src="loadimgpost(user.USER_AvatarURL)" alt="Profile Photo" @click="changePhoto" />
+                        <input type="file" @change="onFileChange" ref="fileInput" style="display: none;" />
                     </div>
                     <div class="profile-info">
-                        <h3>{{ username }}</h3>
-                        <p>{{ name }}</p>
+                        <h3>{{ user.USER_NickName }}</h3>
+                        <p>{{ user.USER_FirstName + " " + user.USER_SubName }}</p>
                     </div>
-
                 </div>
                 <button @click="changePhoto" class="btn-change-photo">Change photo</button>
             </div>
@@ -22,26 +21,27 @@
             <!-- Nickname section -->
             <div class="form-group">
                 <label for="Name">Nick name</label>
-                <input type="text" id="bio" placeholder="Bio" v-model="nickname" maxlength="150"></input>
+                <input type="text" id="nickname" placeholder="" v-model="user.USER_NickName"></input>
+                <p class="note">You'll need to wait 14 more days before updating your nickname again.</p>
             </div>
 
             <!-- name section -->
             <div class="form-group input-2-col">
                 <div>
                     <label for="fn">First name</label>
-                    <input type="text" id="fn" v-model="firstName" maxlength="150"></input>
+                    <input type="text" id="fn" v-model="user.USER_FirstName"></input>
                 </div>
                 <div>
                     <label for="ln">Last name</label>
-                    <input type="text" id="ln" v-model="lastName" maxlength="150"></input>
+                    <input type="text" id="ln" v-model="user.USER_SubName"></input>
                 </div>
             </div>
 
             <!-- Bio Section -->
             <div class="form-group">
                 <label for="bio">Bio</label>
-                <textarea id="bio" placeholder="Bio" v-model="bio" maxlength="200"></textarea>
-                <p class="character-count">{{ bio.length }} / 200</p>
+                <textarea id="bio" placeholder="Bio" v-model="user.USER_Bio" maxlength="200"></textarea>
+                <p class="character-count">{{ user.USER_Bio.length }} / 200</p>
             </div>
 
             <div class="gender-dropdown" ref="dropdown" @click="toggleDropdown()">
@@ -52,58 +52,134 @@
                     <div v-for="(label, value) in genderOptions" :key="value" class="dropdown-gender-item"
                         @click="updateGender(value)">
                         <p class="label-gender">{{ label }}</p>
-                        <div class="icon-tick"><i v-if="selectedGender === value" class="bi bi-check-circle-fill"></i>
+                        <div class="icon-tick"><i v-if="user.USER_Gender === value" class="bi bi-check-circle-fill"></i>
                         </div>
                     </div>
                 </div>
-                <p class="note">This won’t be part of your public profile.</p>
+                <p class="note">This will be part of your public profile.</p>
             </div>
             <div class="btn-frame">
-                <button class="btn-edit">Submit</button>
+                <button class="btn-edit" :disabled="isSubmitDisabled" :class="{ 'active-abled': !isSubmitDisabled }"
+                    @click="submitUpdate">Submit</button>
             </div>
+
         </div>
         <Footer class="footer"></Footer>
+        <div v-if="isAnnountion" class="annountion">{{ messageAnnoution }}</div>
+        <Bur v-show="editAlert" @closeBur="closeOptionChoose" />
+        <optionChoose v-show="editAlert" :textBtnTrue="'Upload photo'" :textBtnFalse="'Remove current photo'"
+            :title="'Change Profile Photo'" @actionCancel="closeOptionChoose" @actionTrue="updateAvatar" />
+
     </div>
 </template>
 
 <script>
 import Nav from '../components/Nav'
 import Footer from '../components/Footer.vue'
+import AuthenticationService from '../services/AuthenticationService';
+import optionChoose from '../components/editProfile/optionChoose.vue';
+import Bur from '../components/Bur.vue';
 export default {
     data() {
         return {
-            profileImage: "https://via.placeholder.com/150", // Replace with actual profile image URL
-            username: "dung_choa_dom",
-            nickname: "Đốm",
-            firstName: 'Trần',
-            lastName: "Dũng",
-            bio: "Once you stop learning, you will start dying.",
+            user: [],
             gender: 0,
             isDropdownOpen: false,
-            selectedGender: "male", // Default selection
             genderOptions: {
-                female: "Female",
-                male: "Male",
+                Female: "Female",
+                Male: "Male",
             },
+            isAnnountion: false,
+            editAlert: false,
+            selectedFile: null,
+            messageAnnoution: "Hello",
+            originalUser: {}
         };
     }, computed: {
         selectedGenderLabel() {
-            return this.genderOptions[this.selectedGender];
+            return this.genderOptions[this.user.USER_Gender];
+        }, isSubmitDisabled() {
+            return (
+                this.user.USER_NickName === this.originalUser.USER_NickName &&
+                this.user.USER_FirstName === this.originalUser.USER_FirstName &&
+                this.user.USER_SubName === this.originalUser.USER_SubName &&
+                this.user.USER_Bio === this.originalUser.USER_Bio &&
+                this.user.USER_Gender === this.originalUser.USER_Gender
+            );
         },
-    }, mounted() {
+    }, async mounted() {
+        const token = localStorage.getItem("token");
+        let userId = ''
+        if (token) {
+            // Nếu có token, có thể gửi yêu cầu đến máy chủ để xác thực token
+            const response = await AuthenticationService.verifyToken(token);
+            if (response.status !== 200) {
+                // Nếu token không hợp lệ, điều hướng đến trang đăng nhập
+                localStorage.removeItem("token");
+                this.$router.push("/");
+            }
+            userId = response.data.userId
+        } else {
+            // Nếu không có token, điều hướng đến trang đăng nhập
+            this.$router.push("/");
+        }
+        const userData = (await AuthenticationService.getUser(userId)).data;
+        this.user = { ...userData }; // Gán dữ liệu vào user
+        this.originalUser = { ...userData }; // Lưu bản sao gốc
         document.addEventListener("click", this.handleClickOutside);
     },
     beforeDestroy() {
         document.removeEventListener("click", this.handleClickOutside);
     },
     methods: {
+        submitUpdate() {
+            console.log(">>>>", this.user)
+        },
+        async onFileChange(event) {
+            this.selectedFile = event.target.files[0];
+
+            // Kiểm tra nếu file đã được chọn, tiến hành upload
+            if (this.selectedFile) {
+                const formData = new FormData();
+                formData.append("file", this.selectedFile);
+                const data = (await AuthenticationService.updateAvatar(this.user.USER_Id, formData)).data
+                if (data.status) {
+                    this.isAnnountion = true
+                    this.messageAnnoution = data.message
+                    this.editAlert = false
+                    setTimeout(() => {
+                        this.messageAnnoution = ''
+                        this.isAnnountion = false
+                    }, 3000)
+                } else {
+                    this.isAnnountion = true
+                    this.messageAnnoution = data.message
+                    this.editAlert = false
+                    setTimeout(() => {
+                        this.messageAnnoution = ''
+                        this.isAnnountion = false
+                    }, 3000)
+                }
+            }
+        },
+        closeOptionChoose() {
+            this.editAlert = false
+        },
+        loadimgpost(images) {
+            if (images) {
+                return require(`../../../server/public/uploads/avatar/${images}`);
+            }
+        },
         toggleDropdown() {
             this.isDropdownOpen = !this.isDropdownOpen;
         },
         updateGender(value) {
-            this.selectedGender = value
-        }, changePhoto() {
-            alert("Change photo functionality coming soon!");
+            this.user.USER_Gender = value
+        }, async updateAvatar() {
+            this.$refs.fileInput.click();
+        }
+        , async changePhoto() {
+            this.editAlert = true
         }, handleClickOutside(event) {
             if (!this.$refs.dropdown.contains(event.target)) {
                 this.closeDropdown();
@@ -112,7 +188,7 @@ export default {
             this.isDropdownOpen = false;
         },
     }, components: {
-        Nav, Footer
+        Nav, Footer, optionChoose, Bur
     }
 }
 </script>
@@ -120,7 +196,6 @@ export default {
 <style scoped>
 .edit-profile {
     position: relative;
-    /* left: 246px; */
     width: calc(1024px/1.5);
     margin: 0 100px;
     padding: 30px 20px 30px;
@@ -152,11 +227,16 @@ h2 {
 }
 
 .profile-photo img {
-    width: 60px;
-    height: 60px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    background-color: #ddd;
+    object-fit: cover;
     cursor: pointer;
+    transition: filter 0.3s;
+}
+
+.profile-photo img:hover {
+    filter: brightness(0.7);
 }
 
 .profile-info h3 {
@@ -362,11 +442,73 @@ input:checked+.slider:before {
 }
 
 .btn-edit {
-    background-color: #0094f667;
+    background-color: #0094f663;
     border: none;
     padding: 10px 104px;
     border-radius: 8px;
     font-weight: 500;
     color: #EFEFEF;
+}
+
+
+.btn-edit.active-abled {
+    background-color: #0094f6;
+    cursor: pointer;
+}
+
+.annountion {
+    position: fixed;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: 24px;
+    height: 45px;
+    width: 100%;
+    background-color: #020202;
+    bottom: 0;
+    left: 0;
+    z-index: 1000000000000;
+    -webkit-animation: scale-up-ver-bottom 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    animation: scale-up-ver-bottom 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+}
+
+.scale-out-ver-bottom {
+    -webkit-animation: scale-out-ver-bottom 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+    animation: scale-out-ver-bottom 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+}
+
+@keyframes scale-out-ver-bottom {
+    0% {
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+        -webkit-transform-origin: 0% 100%;
+        transform-origin: 0% 100%;
+        opacity: 1;
+    }
+
+    100% {
+        -webkit-transform: scaleY(0);
+        transform: scaleY(0);
+        -webkit-transform-origin: 0% 100%;
+        transform-origin: 0% 100%;
+        opacity: 1;
+    }
+}
+
+@keyframes scale-up-ver-bottom {
+    0% {
+        -webkit-transform: scaleY(0.4);
+        transform: scaleY(0.4);
+        -webkit-transform-origin: 0% 100%;
+        transform-origin: 0% 100%;
+    }
+
+    100% {
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+        -webkit-transform-origin: 0% 100%;
+        transform-origin: 0% 100%;
+    }
 }
 </style>

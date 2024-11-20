@@ -246,7 +246,6 @@ export default {
         } else {
             // Nếu không có token, điều hướng đến trang đăng nhập
             this.$router.push("/");
-
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data
 

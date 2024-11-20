@@ -6,6 +6,8 @@ import {
   login,
   registerInfor,
   getConversationUnreadController,
+  updateAvatar,
+  updateAllInforUser,
 } from "../controllers/user.controller.js";
 
 import {
@@ -32,7 +34,10 @@ import {
 } from "../controllers/post.controller.js";
 // import { generateHashtagRecommendationsForUser } from "../services/recomment.js";
 
-import { upload, uploadStatus } from "../controllers/polices/polices.img.js";
+import {
+  uploadAvatar,
+  uploadStatus,
+} from "../controllers/polices/polices.img.js";
 import {
   getConversationsOffAUser,
   // getMessagesInAConversation,
@@ -66,11 +71,19 @@ router.route("/following/:id").get(getFollowing);
 router.route("/frients/:id/friend").get(getFriend);
 router.route("/frients/:id/:f_id").delete(cancelFriend);
 
-router.route("/information/upload").post(upload.array("file"), registerInfor); // update the information (name, avatar) of user
+router
+  .route("/information/upload")
+  .post(uploadAvatar.array("file"), registerInfor); // update the information (name, avatar) of user
+router
+  .route("/edit/profile/:userId")
+  .post(uploadAvatar.array("file"), updateAvatar)
+  .put(updateAllInforUser);
+
 router
   .route("/status/img")
   .post(uploadStatus.array("file"), moderateContentController, postStatus);
 // .get(getPostsOfUsers);
+
 router
   .route("/status/img/:id")
   .get(getPostOfUser)

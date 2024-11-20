@@ -19,6 +19,7 @@ const storageAvatar = multer.diskStorage({
     }
   },
   filename: function (req, file, callback) {
+    const uid = uuidv4();
     callback(null, uid + ".jpg");
   },
 });
@@ -49,7 +50,7 @@ const storageStatus = multer.diskStorage({
   },
 });
 
-export const upload = multer({
+export const uploadAvatar = multer({
   storage: storageAvatar,
   limits: { fileSize: 1024 * 1024 * 10 }, // 10 MB
 });

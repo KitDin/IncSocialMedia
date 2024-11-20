@@ -44,7 +44,7 @@ export async function getUserById(id) {
   select U.USER_Id, U.USER_AccountName, U.USER_Email, UI.USER_Status, 
            UI.USER_FirstName, UI.USER_SubName, UI.USER_NickName, 
            UI.USER_NumberPhone, UI.USER_AvatarURL, UI.USER_Cover, 
-           UI.USER_BrithDay, USER_Bio from __USER U left join __USER_INFOR UI on U.USER_Id=UI.USER_Id 
+           UI.USER_BrithDay, USER_Bio, UI.USER_Gender  from __USER U left join __USER_INFOR UI on U.USER_Id=UI.USER_Id 
            where U.USER_Id = ?;
   `,
     [id]
@@ -119,3 +119,50 @@ export async function setInforUser(
     console.error(error);
   }
 }
+
+export const updateInfoUser = {
+  updateAvatar: async (userId, avatarURL) => {
+    try {
+      const query = `update __USER_INFOR set USER_AVATARURL=? where USER_ID = ?;`;
+      const [rs] = await pool.query(query, [avatarURL, userId]);
+      if (rs.affectedRows > 0) return true;
+
+      return false;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  },
+  updateAll: async (
+    USER_Id,
+    USER_NickName,
+    USER_FirstName,
+    USER_SubName,
+    USER_Bio,
+    USER_Gender
+  ) => {
+    try {
+      const query = `UPDATE __USER_INFOR
+                      SET 
+                          USER_NICKNAME = ?,   
+                          USER_FIRSTNAME = ?, 
+                          USER_SUBNAME = ?, 
+                          USER_Bio = ?,
+                          USER_Gender = ?
+                      WHERE 
+                          USER_ID = ?;`;
+      const [rs] = await pool.query(query, [
+        USER_NickName,
+        USER_FirstName,
+        USER_SubName,
+        USER_Bio,
+        USER_Gender,
+        USER_Id,
+      ]);
+      if (rs.affectedRows > 0) return true;
+      return false;
+    } catch (error) {
+      return false;
+    }
+  },
+};

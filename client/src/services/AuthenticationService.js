@@ -110,5 +110,12 @@ export default {
   },
   getRecommendHashtag(id) {
     return Api().get(`/hashtag/recommend/${id}`);
+  },
+  updateAvatar(id, formData) {
+    return Api().post(`edit/profile/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
   }
 };

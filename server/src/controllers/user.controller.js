@@ -6,6 +6,7 @@ import {
   getAccountName_Email,
   checkAccout_Password,
   setInforUser,
+  updateInfoUser,
 } from "../services/user.js";
 
 import {
@@ -172,36 +173,13 @@ export async function registerInfor(req, res) {
   console.log(req.body, file);
 }
 
-// export async function login(req, res) {
-//   try {
-//     const { email, password } = req.body;
-//     if (await checkAccout_Password(email, email, password)) {
-//       const getid = await getUser(email, email);
-//       return res.json({
-//         status: "successful",
-//         mess: `/home/`,
-//         user: getid,
-//       });
-//     } else {
-//       return res.json({
-//         status: "error",
-//         error: "Your username or password is not correct",
-//       });
-//     }
-//   } catch (error) {
-//     return res.json({
-//       status: error,
-//     });
-//   }
-// }
-
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
     if (await checkAccout_Password(email, email, password)) {
       const [getid] = await getUser(email, email);
       const token = jwt.sign(getid, process.env.JSON_WEB_TOKEN_KEY, {
-        expiresIn: "1d",
+        expiresIn: "100d",
       });
       console.error("error");
 
@@ -227,6 +205,64 @@ export async function login(req, res) {
   }
 }
 
+export const updateAvatar = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    // const { avatarURL } = req.body;
+    const files = req.files.map((file) => file.filename);
+    const rsUpdate = await updateInfoUser.updateAvatar(userId, files);
+    if (rsUpdate)
+      return res.json({
+        status: true,
+        message:
+          "Avatar updated! Looking good-thanks for refreshing your profile!",
+      });
+
+    return res.json({
+      status: false,
+      message: `Oops! The update didn't go through. Please wait a moment and try again!`,
+    });
+  } catch (error) {
+    return res.json(error);
+  }
+};
+export const updateAllInforUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const {
+      USER_Id,
+      USER_NickName,
+      USER_FirstName,
+      USER_SubName,
+      USER_Bio,
+      USER_Gender,
+    } = req.body;
+
+    const rs = await updateInfoUser.updateAll(
+      USER_Id,
+      USER_NickName,
+      USER_FirstName,
+      USER_SubName,
+      USER_Bio,
+      USER_Gender
+    );
+    if (rs) {
+      return res.json({
+        status: true,
+        message:
+          "Avatar updated! Looking good-thanks for refreshing your profile!",
+      });
+    } else {
+      return res.json({
+        status: false,
+        message: "",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.json({ error });
+  }
+};
 export const getConversationUnreadController = async (req, res) => {
   try {
     const { id } = req.params;
