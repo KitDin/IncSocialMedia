@@ -63,7 +63,9 @@ export async function getPostOfUser(req, res) {
 
 export async function getPostsOfUsers(req, res) {
   try {
-    const post = await getPosts();
+    const { id } = req.params;
+    console.log(id);
+    const post = await getPosts(id);
     res.json(post);
   } catch (error) {
     console.error("Error getting comments:", error);

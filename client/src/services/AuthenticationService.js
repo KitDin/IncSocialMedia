@@ -58,8 +58,8 @@ export default {
   getpost(id) {
     return Api().get(`status/img/${id}`);
   },
-  getposts() {
-    return Api().get(`status/img`);
+  getposts(id) {
+    return Api().get(`/status/img/recommend/${id}`);
   },
   like(id, post) {
     return Api().post(`status/img/${id}`, post);
@@ -107,5 +107,8 @@ export default {
   },
   getNumberNotification(id) {
     return Api().get(`/notifications/message/${id}`);
+  },
+  getRecommendHashtag(id) {
+    return Api().get(`/hashtag/recommend/${id}`);
   }
 };

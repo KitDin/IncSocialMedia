@@ -123,14 +123,14 @@ export default {
             }
             if (this.searchQuery.trim()) {
                 // Gửi ký tự tìm kiếm lên server thông qua socket
-
+                console.log(this.currentUserId)
                 this.isLoading = true;
                 socket.emit('searchUser', { searchQuery: this.searchQuery, userId: this.currentUserId });
 
                 socket.on('searchResults', (results) => {
                     this.isLoading = false;
                     if (this.usersChoose.length !== 0)
-                        this.searchResults = results.filter(user1 => !this.usersChoose.some(user2 => user1.USER_ID === user2.USER_ID));
+                        this.searchResults = results.filter(user1 => !this.usersChoose.some(user2 => user1.USER_ID === user2.USER_ID) || user1.USER_ID !== this.currentUserId);
                     else this.searchResults = results
                 });
             }

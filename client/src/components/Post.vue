@@ -64,7 +64,7 @@
                                 }}/2.200</p>
                         </div>
                         <HashTag v-if="isHashtag" :hashTags="hashTagsDataSearch" @getHasgTag='getHasgTag'
-                            :isLoading="isLoading" />
+                            :isLoading="isLoading" :hashTagsRecommend="hashTagRecommend" />
                     </div>
                 </div>
             </div>
@@ -98,6 +98,7 @@ export default {
             ],
             showSelectFrame: false,
             isHashtag: false,
+            hashTagRecommend: [],
             hashTagsDataSearch: [],
             hashTagsSelected: [],
             isLoading: true,
@@ -281,6 +282,7 @@ export default {
             this.$router.push("/");
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data
+        this.hashTagRecommend = (await AuthenticationService.getRecommendHashtag(this.userid)).data
     }, components: { HashTag }
 }
 </script>

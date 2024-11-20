@@ -1,5 +1,5 @@
 import { pool } from "../db/db.js";
-
+import { recommendPostsForUser } from "../services/recomment.js";
 export async function APost(id) {
   const [rows] = await pool.query(
     "SELECT * FROM __POSTs p join __USER_Infor u on p.USER_Id = u.USER_Id WHERE POST_Id=?",
@@ -126,51 +126,119 @@ FROM (
   return postFull;
 }
 
-export async function getPosts() {
+export async function getPosts(userId) {
+  // Bước 1: Gọi recommendPostsForUser để lấy danh sách các bài đăng gợi ý cho userId
+  const recommendedPostIds = await recommendPostsForUser(userId);
+
+  // Nếu không có bài đăng gợi ý, trả về danh sách trống
+  if (recommendedPostIds.length === 0) {
+    return [];
+  }
+
+  // Bước 2: Lấy thông tin chi tiết cho các bài đăng được gợi ý
   const [rows] = await pool.query(
-    `SELECT POST_Id,POST_Content,POST_AccessModifies,POST_Time,p.USER_Id,USER_FirstName,USER_SubName,USER_NickName,USER_AvatarURL
-      FROM __POSTs p join __USER_Infor ui 
-      on p.user_id = ui.user_id order by post_time desc;`
+    `SELECT POST_Id, POST_Content, POST_AccessModifies, POST_Time, p.USER_Id, USER_FirstName, USER_SubName, USER_NickName, USER_AvatarURL
+      FROM __POSTs p
+      JOIN __USER_Infor ui ON p.USER_Id = ui.USER_Id
+      WHERE p.POST_Id IN (?)
+      ORDER BY POST_Time DESC;`,
+    [recommendedPostIds]
   );
+
   const postFull = [];
   for (let index = 0; index < rows.length; index++) {
     const post = rows[index];
+
+    // Đếm tổng số bình luận và trả lời cho bài đăng
     const [countComment] = await pool.query(
       `SELECT SUM(comment_count) AS total_count
-FROM (
-    SELECT COUNT(*) AS comment_count
-    FROM __comments
-    WHERE post_id = ?
-    UNION ALL
-    SELECT COUNT(*) AS comment_count
-    FROM __replyComment
-    WHERE post_id = ?
-) AS combined_counts;`,
+      FROM (
+          SELECT COUNT(*) AS comment_count
+          FROM __COMMENTS
+          WHERE POST_ID = ?
+          UNION ALL
+          SELECT COUNT(*) AS comment_count
+          FROM __REPLYCOMMENT
+          WHERE POST_ID = ?
+      ) AS combined_counts;`,
       [post.POST_Id, post.POST_Id]
     );
+
+    // Lấy ảnh cho bài đăng
     const [images] = await pool.query(
-      `SELECT POST_ImgURL FROM __IMGs_POST WHERE POST_Id = ?`,
+      `SELECT POST_ImgURL FROM __IMGS_POST WHERE POST_ID = ?`,
       [post.POST_Id]
     );
 
+    // Lấy lượt thích cho bài đăng
     const [likes] = await pool.query(
-      "select * from __likes where POST_id = ?",
+      "SELECT USER_ID FROM __LIKES WHERE POST_ID = ?",
       [post.POST_Id]
     );
+
+    // Lấy hashtag cho bài đăng
     const hashtag = await getHashTagsOfPost(post.POST_Id);
 
+    // Đưa tất cả thông tin vào đối tượng post
     const postWithImages = {
       content: post,
       images: images.map((image) => image.POST_ImgURL),
       hashtag,
-      likes: likes.map((like) => like.USER_id),
+      likes: likes.map((like) => like.USER_ID),
       countLike: likes.length,
       countComment: countComment[0].total_count,
     };
     postFull.push(postWithImages);
   }
+
   return postFull;
 }
+
+// export async function getPosts() {
+//   const [rows] = await pool.query(
+//     `SELECT POST_Id,POST_Content,POST_AccessModifies,POST_Time,p.USER_Id,USER_FirstName,USER_SubName,USER_NickName,USER_AvatarURL
+//       FROM __POSTs p join __USER_Infor ui
+//       on p.user_id = ui.user_id order by post_time desc;`
+//   );
+//   const postFull = [];
+//   for (let index = 0; index < rows.length; index++) {
+//     const post = rows[index];
+//     const [countComment] = await pool.query(
+//       `SELECT SUM(comment_count) AS total_count
+// FROM (
+//     SELECT COUNT(*) AS comment_count
+//     FROM __comments
+//     WHERE post_id = ?
+//     UNION ALL
+//     SELECT COUNT(*) AS comment_count
+//     FROM __replyComment
+//     WHERE post_id = ?
+// ) AS combined_counts;`,
+//       [post.POST_Id, post.POST_Id]
+//     );
+//     const [images] = await pool.query(
+//       `SELECT POST_ImgURL FROM __IMGs_POST WHERE POST_Id = ?`,
+//       [post.POST_Id]
+//     );
+
+//     const [likes] = await pool.query(
+//       "select * from __likes where POST_id = ?",
+//       [post.POST_Id]
+//     );
+//     const hashtag = await getHashTagsOfPost(post.POST_Id);
+
+//     const postWithImages = {
+//       content: post,
+//       images: images.map((image) => image.POST_ImgURL),
+//       hashtag,
+//       likes: likes.map((like) => like.USER_id),
+//       countLike: likes.length,
+//       countComment: countComment[0].total_count,
+//     };
+//     postFull.push(postWithImages);
+//   }
+//   return postFull;
+// }
 
 export async function like(userId, postId) {
   try {

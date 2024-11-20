@@ -218,7 +218,7 @@ export default {
                 this.posts[postIndex] = updatedPost;
             }
         }, async fetchPosts() {
-            let postsData = (await AuthenticationService.getposts()).data;
+            let postsData = (await AuthenticationService.getposts(this.userid)).data;
             this.posts = postsData.map(post => {
                 const isCurrentUserLiked = post.likes.includes(this.userid);
                 return {

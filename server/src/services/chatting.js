@@ -127,30 +127,35 @@ export async function searchingUser(searchQuery, userId) {
       [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
     );
 
-    // Get the list of friend IDs
+    // Lọc bỏ người dùng có ID trùng với userId
+    const filteredResults = searchResults.filter(
+      (result) => result.USER_ID !== userId
+    );
+
+    // Lấy danh sách ID bạn bè
     const friends = await ListFriend(userId);
     const friendIds = friends.map((friend) => friend.friend_user_id);
 
-    // Get the list of users the current user has chatted with
+    // Lấy danh sách người dùng mà userId đã trò chuyện
     const conversationsOfUser = await getConversationOfAUser(userId);
     const usersIdChatting = conversationsOfUser[0].map((conversation) => {
       return conversation.USER_ID;
     });
 
-    // Filter out users who have already chatted with the current user
-    const resultHadChatting = searchResults.filter((result) => {
+    // Lọc bỏ những người dùng đã trò chuyện với userId
+    const resultHadChatting = filteredResults.filter((result) => {
       return !usersIdChatting.some(
         (userIdChatting) => result.USER_ID === userIdChatting
       );
     });
 
-    // Create the final result array with an isFriend property
+    // Tạo mảng kết quả cuối cùng với thuộc tính isFriend
     const finalResults = resultHadChatting.map((result) => {
       const isFriend = friendIds.includes(result.USER_ID);
       return { ...result, isFriend };
     });
 
-    // Sort the final results so friends come first
+    // Sắp xếp kết quả cuối cùng để bạn bè xuất hiện đầu tiên
     finalResults.sort((a, b) => b.isFriend - a.isFriend);
 
     return finalResults;
@@ -158,6 +163,7 @@ export async function searchingUser(searchQuery, userId) {
     console.error(error);
   }
 }
+
 export async function searchConversation(searchQuery, userId) {
   try {
     // Lấy danh sách các cuộc hội thoại của người dùng

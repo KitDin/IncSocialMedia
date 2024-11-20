@@ -30,6 +30,7 @@ import {
   getComments,
   postReplyComment,
 } from "../controllers/post.controller.js";
+// import { generateHashtagRecommendationsForUser } from "../services/recomment.js";
 
 import { upload, uploadStatus } from "../controllers/polices/polices.img.js";
 import {
@@ -40,7 +41,10 @@ import {
 } from "../controllers/message.controller.js";
 import middlewareController from "../middleware/test.middleware.js";
 import { moderateContentController } from "../controllers/moderate.controller.js";
-import { getHashtagByNameController } from "../controllers/hashtag.controller.js";
+import {
+  getHashtagByNameController,
+  getHashtagRecommendForAUser,
+} from "../controllers/hashtag.controller.js";
 
 export const router = express.Router();
 
@@ -65,13 +69,14 @@ router.route("/frients/:id/:f_id").delete(cancelFriend);
 router.route("/information/upload").post(upload.array("file"), registerInfor); // update the information (name, avatar) of user
 router
   .route("/status/img")
-  .post(uploadStatus.array("file"), moderateContentController, postStatus)
-  .get(getPostsOfUsers);
+  .post(uploadStatus.array("file"), moderateContentController, postStatus);
+// .get(getPostsOfUsers);
 router
   .route("/status/img/:id")
   .get(getPostOfUser)
   .post(likePost)
   .put(unlikePost);
+router.route("/status/img/recommend/:id").get(getPostsOfUsers);
 router.route("/post/:idpost").get(getAPost);
 router
   .route("/post/comments/comment/:idpost")
@@ -88,3 +93,4 @@ router
   .put(deleteConversation);
 router.route("/notifications/message/:id").get(getConversationUnreadController);
 router.route("/hashtag/search").get(getHashtagByNameController);
+router.route("/hashtag/recommend/:id").get(getHashtagRecommendForAUser);

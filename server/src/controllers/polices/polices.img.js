@@ -19,13 +19,14 @@ const storageAvatar = multer.diskStorage({
     }
   },
   filename: function (req, file, callback) {
-    callback(null, file.fieldname + "_" + Date.now() + ".jpg");
+    callback(null, uid + ".jpg");
   },
 });
 
 const storageStatus = multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, "./public/uploads/post");
+    // callback(null, "./public/uploads/avatar");
   },
   fileFilter: function (req, file, cb) {
     const extension = path.extname(file.originalname).toLowerCase();

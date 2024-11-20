@@ -59,6 +59,7 @@ import Login from "@/views/Login";
 import MessagesPage from "@/views/MessagesPage";
 import Profile from "@/views/Profile";
 import Information from "@/views/Information";
+import EditProfile from "@/views/EditProfile.vue";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
 
@@ -88,7 +89,8 @@ const routes = [
     name: "Profile",
     component: Profile,
     children: [{ path: ":idother", name: "ProfileOther", component: Profile }]
-  }
+  },
+  { path: "/edit", name: "EditProfile", component: EditProfile }
 ];
 
 const router = new Router({
