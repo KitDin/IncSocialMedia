@@ -1,10 +1,6 @@
 <template>
     <div class="frame-post">
-        <div v-if="isLoadingSubmit" class="loader"></div>
-
-        <div class="prevent" @click="showPost()">
-            <i class="bi bi-x-lg" @click.stop="showPost()"></i>
-        </div>
+        <!-- <div v-if="isLoadingSubmit" class="loader"></div> -->
 
         <div class="choose-img" v-if="imageUrl.length === 0">
             <div class="tittle">
@@ -193,33 +189,28 @@ export default {
         async submitForm() {
             try {
                 this.isLoadingSubmit = true;
-                const textWithoutHashtags = this.textarea.replace(/#\w+/g, '').trim();
                 const formData = new FormData();
-
                 for (let i = 0; i < this.imageUrl.length; i++) {
                     const file = this.dataURItoBlob(this.imageUrl[i]);
                     formData.append('file', file);
                 }
-
                 formData.append('POST_Id', this.uuid());
                 formData.append('USER_Id', this.userid);
-                formData.append('POST_Content', textWithoutHashtags);
+                formData.append('POST_Content', this.textarea.replace(/#\w+/g, '').trim());
                 formData.append('POST_AccessModifies', this.selected.value);
                 formData.append('HashTags', JSON.stringify(this.hashTagsSelected));
-                // Kiểm tra phản hồi từ API
                 const response = await AuthenticationService.uploadImgPost(formData);
-                console.log(response)
-                if (response && response.data && response.data.status) {
+                if (response.data.status) {
+                    alert("Your post is live!");
+                    this.$emit("closePost");
                     this.imageUrl = [];
                     this.textarea = '';
-                    this.$emit('closePost');
-                    alert("Your post is live!")
                 } else {
-                    alert("Ohh!, " + response.data.message)
+                    alert("Ohh!, " + response.data.message);
                 }
             } catch (error) {
-                console.error("Lỗi trong submitForm:", error);
-                this.$emit('errorPost', 'Lỗi khi kết nối tới máy chủ.');
+                console.error("Error in submitForm:", error);
+                alert("There was an error submitting your post.");
             } finally {
                 this.isLoadingSubmit = false;
             }
@@ -362,11 +353,12 @@ export default {
     }
 }
 
-.frame-post .prevent {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+.frame-post {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    z-index: 1000;
 }
 
 .frame-post .prevent i {
@@ -445,14 +437,6 @@ export default {
     padding-right: 10px;
 }
 
-.frame-post {
-    width: 100%;
-    height: 750px;
-    top: 0;
-    left: 0;
-    position: fixed;
-    z-index: 1000;
-}
 
 .frame-post .choose-img {}
 

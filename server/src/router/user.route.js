@@ -74,6 +74,7 @@ router.route("/frients/:id/:f_id").delete(cancelFriend);
 router
   .route("/information/upload")
   .post(uploadAvatar.array("file"), registerInfor); // update the information (name, avatar) of user
+
 router
   .route("/edit/profile/:userId")
   .post(uploadAvatar.array("file"), updateAvatar)

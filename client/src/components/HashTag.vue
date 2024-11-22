@@ -7,7 +7,7 @@
             <p class="count-post">{{ hashTag.post_count.toLocaleString('en-US') }} posts</p>
         </div>
         <div class="for-you" v-show="!isLoading && hashTagsRecommend.length > 0">Hashtag for you</div>
-        <div class="hashtag-info" v-for="(hashTag, index) in hashTagsRecommend" :key="index"
+        <div class="hashtag-info" v-for="(hashTag, index) in hashTagsRecommend" :key="hashTag.hashtag_id"
             @click="$emit('getHasgTag', hashTag)" v-show="!isLoading && hashTagsRecommend.length > 0">
             <p class="name">{{ hashTag.hashtag_name }}</p>
             <p class="count-post">{{ hashTag.post_count.toLocaleString('en-US') }} posts</p>
@@ -19,7 +19,7 @@ import LoadingPage from './LoadingPage.vue';
 export default {
     props: {
         hashTags: [],
-        isLoading: Boolean, hashTagsRecommend: { type: Object, default: [] }
+        isLoading: Boolean, hashTagsRecommend: []
     }, components: {
         LoadingPage
     }
@@ -69,5 +69,6 @@ export default {
     text-align: left;
     font-weight: 800;
     margin-top: 12px;
+    margin-left: 12px;
 }
 </style>

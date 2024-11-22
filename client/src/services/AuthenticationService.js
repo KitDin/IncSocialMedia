@@ -1,3 +1,4 @@
+import { update } from "lodash";
 import Api from "./Api";
 import verifyAPI from "./VerifyAPI";
 
@@ -58,8 +59,10 @@ export default {
   getpost(id) {
     return Api().get(`status/img/${id}`);
   },
-  getposts(id) {
-    return Api().get(`/status/img/recommend/${id}`);
+  getposts(id, page = 1, limit = 10, displayedPostIds = []) {
+    return Api().get(`/status/img/recommend/${id}`, {
+      params: { page, limit, displayedPostIds }
+    });
   },
   like(id, post) {
     return Api().post(`status/img/${id}`, post);
@@ -117,5 +120,8 @@ export default {
         "Content-Type": "multipart/form-data"
       }
     });
+  },
+  updateAllInfo(id, data) {
+    return Api().put(`edit/profile/${id}`, data);
   }
 };

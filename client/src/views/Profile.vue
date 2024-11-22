@@ -2,7 +2,7 @@
     <div class="profile-frame">
         <div class="" :class="mess ? 'scale-up-ver-top dataMess' : ''">{{ mess }}</div>
         <div v-if="showLoader" class="loader"></div>
-        <Nav></Nav>
+        <Nav @makeNewPost="makeNewPost"></Nav>
         <div v-show="!showLoader" class="profile-contents">
             <!-- Người dùng khác -->
             <div v-if="!isCurrentUser">
@@ -148,6 +148,10 @@ export default {
     }, components: {
         Nav, Footer, CommentPost, Friends
     }, methods: {
+        async makeNewPost() {
+            console.log(">> make new in profile");
+            // await this.fetchData()
+        },
         updateNumOfFriend(opiton) {
             switch (opiton) {
                 case '+':
@@ -323,6 +327,44 @@ export default {
         }, isContentOverFifteenWords(content) {
             const words = content.split(' '); // Tách chuỗi thành mảng các từ
             return words.length > 15; // Kiểm tra xem mảng có nhiều hơn 15 từ hay không
+        }, async fetchData() {
+            this.postHoverStates = new Array(this.posts.length).fill(false)
+            this.user_personal = (await AuthenticationService.getUser(this.user_personal_params_id)).data;
+            this.numOfFriend = this.user_personal.listFriend.length
+            this.numOfRequest = this.user_personal.friendRequests.length
+            if (this.$route.params.idother) {
+                this.user_other_params_id = this.$route.params.idother;
+                this.user_other = (await AuthenticationService.getUser(this.user_other_params_id)).data;
+                this.isCurrentUser = false;
+                const postsData = (await AuthenticationService.getpost(this.user_other_params_id)).data;
+                this.posts = postsData.map((post) => {
+                    const isCurrentUserLiked = post.likes.includes(this.user_other_params_id);
+                    return {
+                        ...post,
+                        isHeartFilled: isCurrentUserLiked,
+                        activeIndex: 0,
+                        scrollTimeout: null,
+                        showFullContent: () => {
+                            const words = post.content.POST_Content.split(' '); // Tách chuỗi thành mảng các từ
+                            return words.length > 15;
+                        }
+                    }
+                })
+            } else {
+                this.isCurrentUser = true;
+                const postsData = (await AuthenticationService.getpost(this.user_personal_params_id)).data;
+                this.posts = postsData.map((post) => {
+                    const isCurrentUserLiked = post.likes.includes(this.user_personal_params_id);
+                    return {
+                        ...post,
+                        isHeartFilled: isCurrentUserLiked,
+                        activeIndex: 0,
+                        scrollTimeout: null,
+                        showFullContent: this.isContentOverFifteenWords(post.content.POST_Content)
+                    }
+                })
+            }
+
         }
     }, async mounted() {
         const token = localStorage.getItem("token");
@@ -340,43 +382,7 @@ export default {
             // Nếu không có token, điều hướng đến trang đăng nhập
             this.$router.push("/");
         }
-
-        this.postHoverStates = new Array(this.posts.length).fill(false)
-        this.user_personal = (await AuthenticationService.getUser(this.user_personal_params_id)).data;
-        this.numOfFriend = this.user_personal.listFriend.length
-        this.numOfRequest = this.user_personal.friendRequests.length
-        if (this.$route.params.idother) {
-            this.user_other_params_id = this.$route.params.idother;
-            this.user_other = (await AuthenticationService.getUser(this.user_other_params_id)).data;
-            this.isCurrentUser = false;
-            const postsData = (await AuthenticationService.getpost(this.user_other_params_id)).data;
-            this.posts = postsData.map((post) => {
-                const isCurrentUserLiked = post.likes.includes(this.user_other_params_id);
-                return {
-                    ...post,
-                    isHeartFilled: isCurrentUserLiked,
-                    activeIndex: 0,
-                    scrollTimeout: null,
-                    showFullContent: () => {
-                        const words = post.content.POST_Content.split(' '); // Tách chuỗi thành mảng các từ
-                        return words.length > 15;
-                    }
-                }
-            })
-        } else {
-            this.isCurrentUser = true;
-            const postsData = (await AuthenticationService.getpost(this.user_personal_params_id)).data;
-            this.posts = postsData.map((post) => {
-                const isCurrentUserLiked = post.likes.includes(this.user_personal_params_id);
-                return {
-                    ...post,
-                    isHeartFilled: isCurrentUserLiked,
-                    activeIndex: 0,
-                    scrollTimeout: null,
-                    showFullContent: this.isContentOverFifteenWords(post.content.POST_Content)
-                }
-            })
-        }
+        this.fetchData()
 
     }, computed: {
         currentPosts() {

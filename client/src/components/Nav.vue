@@ -45,11 +45,11 @@
         <div class="prevent2" v-if="showSearchBar" @click="showpreventsearch()"></div>
 
         <Search v-if="is_expanded && showSearchBar" :isOpen="showSearchBar"
-            :class="!showPostBar ? 'animationClosePar' : ''" />
+            :class="!showSearchBar ? 'animationClosePar' : ''" />
 
         <AlertComponents v-if="!isAlert" :message="alertMessage" />
-
-        <Post class="componentPost" v-if="showPostBar" @closePost="closePost" @errorPost="errorPost" />
+        <Bur v-if="showPostBar" @closeBur="closePost" />
+        <Post class="componentPost" v-if="showPostBar" @closePost="makeNewPost" />
 
     </div>
 </template>
@@ -60,10 +60,8 @@ import { RouterLink } from 'vue-router'
 import Search from './Search.vue'
 import Post from './Post.vue';
 import AlertComponents from './AlertComponents.vue';
-import socket from '../services/Socket.io';
+import Bur from './Bur.vue'
 
-
-let activeItem = null;
 export default {
     data() {
         return {
@@ -80,7 +78,7 @@ export default {
                 { id: 1, icon: "bi bi-house-door", icon_fill: "bi bi-house-door-fill", text: "Home", link_to: "Home" },
                 { id: 2, icon: "bi bi-search-heart", icon_fill: "bi bi-search-heart-fill", text: "Search", link_to: null, status: false },
                 { id: 3, icon: "bi bi-chat-dots", icon_fill: "bi bi-chat-dots-fill", text: "Messages", link_to: "Messages" },
-                // { id: 4, icon: "bi bi-heart", icon_fill: "bi bi-heart-fill", text: "Notifications", link_to: null },
+                { id: 4, icon: "bi bi-heart", icon_fill: "bi bi-heart-fill", text: "Notifications", link_to: null },
                 { id: 5, icon: "bi bi-plus-circle", icon_fill: "bi bi-plus-circle-fill", text: "Create", link_to: null, status: false },
                 { id: 6, text: "Profile", avatar: this.user ? this.user.USER_AvatarURL : '', link_to: "Profile" },
             ],
@@ -96,11 +94,13 @@ export default {
         errorPost(err) {
             this.alertMessage = err
             this.isAlert = false
+        }, async makeNewPost() {
+            console.log(">>> make new in nav");
+            // this.$emit('makeNew')
         },
         closePost() {
-            this.$emit('makeNewPost')
             this.showPostBar = false;
-            this.links[3].status = !this.links[3].status
+            this.links[4].status = !this.links[4].status
         },
         handleItemClick(link) {
             if (link.id === 2) {
@@ -175,10 +175,9 @@ export default {
         this.user = (await AuthenticationService.getUser(this.userid)).data;
         setInterval(async () => {
             this.notificationMessages = (await AuthenticationService.getNumberNotification(this.userid)).data
-
-        }, 100)
+        }, 1000)
     },
-    components: { RouterLink, Search, Post, AlertComponents },
+    components: { RouterLink, Search, Post, AlertComponents, Bur },
 }
 </script>
 

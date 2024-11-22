@@ -35,6 +35,7 @@ export async function postStatus(req, res) {
     if (HashTagsOb.length !== 0)
       for (let index = 0; index < HashTagsOb.length; index++) {
         await postHashtag(POST_Id, HashTagsOb[index].hashtag_id);
+        console.log(HashTagsOb[index].hashtag_id);
       }
 
     res.json({
@@ -64,8 +65,10 @@ export async function getPostOfUser(req, res) {
 export async function getPostsOfUsers(req, res) {
   try {
     const { id } = req.params;
-    console.log(id);
-    const post = await getPosts(id);
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const displayedPostIds = req.query.displayedPostIds || [];
+    const post = await getPosts(id, page, limit, displayedPostIds);
     res.json(post);
   } catch (error) {
     console.error("Error getting comments:", error);
@@ -80,14 +83,11 @@ export async function likePost(req, res) {
     const check = await like(id, POST_Id);
     if (check) {
       return res.json({
-        status: "successful",
-        req: req.body,
+        status: true,
       });
     } else {
       return res.json({
-        status: "fall",
-        req: req.body,
-        check: check,
+        status: false,
       });
     }
   } catch (error) {
@@ -103,14 +103,11 @@ export async function unlikePost(req, res) {
     const check = await unlike(id, POST_Id);
     if (check) {
       return res.json({
-        status: "successful unlike",
-        req: req.body,
+        status: true,
       });
     } else {
       return res.json({
-        status: "failure unliek",
-        req: req.body,
-        check: check,
+        status: false,
       });
     }
   } catch (error) {

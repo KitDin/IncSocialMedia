@@ -1,5 +1,6 @@
 <template>
     <div class="edit-frame">
+        <div v-if="showLoader" class="loader"></div>
         <Nav></Nav>
         <div class="edit-profile">
             <h2>Edit profile</h2>
@@ -7,12 +8,14 @@
             <div class="profile-header">
                 <div class="profile">
                     <div class="profile-photo">
-                        <img :src="loadimgpost(user.USER_AvatarURL)" alt="Profile Photo" @click="changePhoto" />
+                        <img :class="{ 'black-loading': isLoadingAvatar }" :src="loadimgpost(user.USER_AvatarURL)"
+                            alt="Profile Photo" @click="changePhoto" />
+                        <LoadingPage v-if="isLoadingAvatar" class="sub-class" :isWhite="true" />
                         <input type="file" @change="onFileChange" ref="fileInput" style="display: none;" />
                     </div>
                     <div class="profile-info">
-                        <h3>{{ user.USER_NickName }}</h3>
-                        <p>{{ user.USER_FirstName + " " + user.USER_SubName }}</p>
+                        <h3>{{ originalUser.USER_NickName }}</h3>
+                        <p>{{ originalUser.USER_FirstName + " " + originalUser.USER_SubName }}</p>
                     </div>
                 </div>
                 <button @click="changePhoto" class="btn-change-photo">Change photo</button>
@@ -67,7 +70,7 @@
         <Footer class="footer"></Footer>
         <div v-if="isAnnountion" class="annountion">{{ messageAnnoution }}</div>
         <Bur v-show="editAlert" @closeBur="closeOptionChoose" />
-        <optionChoose v-show="editAlert" :textBtnTrue="'Upload photo'" :textBtnFalse="'Remove current photo'"
+        <optionChoose v-if="editAlert" :textBtnTrue="'Upload photo'" :textBtnFalse="'Remove current photo'"
             :title="'Change Profile Photo'" @actionCancel="closeOptionChoose" @actionTrue="updateAvatar" />
 
     </div>
@@ -79,6 +82,7 @@ import Footer from '../components/Footer.vue'
 import AuthenticationService from '../services/AuthenticationService';
 import optionChoose from '../components/editProfile/optionChoose.vue';
 import Bur from '../components/Bur.vue';
+import LoadingPage from '../components/LoadingPage.vue';
 export default {
     data() {
         return {
@@ -93,7 +97,8 @@ export default {
             editAlert: false,
             selectedFile: null,
             messageAnnoution: "Hello",
-            originalUser: {}
+            originalUser: {},
+            isLoadingAvatar: false, showLoader: false
         };
     }, computed: {
         selectedGenderLabel() {
@@ -123,44 +128,50 @@ export default {
             // Nếu không có token, điều hướng đến trang đăng nhập
             this.$router.push("/");
         }
-        const userData = (await AuthenticationService.getUser(userId)).data;
-        this.user = { ...userData }; // Gán dữ liệu vào user
-        this.originalUser = { ...userData }; // Lưu bản sao gốc
+        this.freshData(userId)
         document.addEventListener("click", this.handleClickOutside);
     },
     beforeDestroy() {
         document.removeEventListener("click", this.handleClickOutside);
     },
     methods: {
+        async freshData(userId) {
+            const userData = (await AuthenticationService.getUser(userId)).data;
+            this.user = { ...userData }; // Gán dữ liệu vào user
+            this.originalUser = { ...userData }; // Lưu bản sao gốc
+        },
         submitUpdate() {
-            console.log(">>>>", this.user)
+            this.showLoader = true
+            setTimeout(async () => {
+                this.showLoader = false
+                this.isAnnountion = true
+                const updateInfo = (await AuthenticationService.updateAllInfo(this.user.USER_Id, this.user)).data
+                this.freshData(this.user.USER_Id)
+                this.messageAnnoution = updateInfo.message
+                setTimeout(() => {
+                    this.messageAnnoution = ''
+                    this.isAnnountion = false
+                }, 3000)
+            }, 2000)
         },
         async onFileChange(event) {
             this.selectedFile = event.target.files[0];
-
-            // Kiểm tra nếu file đã được chọn, tiến hành upload
-            if (this.selectedFile) {
-                const formData = new FormData();
-                formData.append("file", this.selectedFile);
-                const data = (await AuthenticationService.updateAvatar(this.user.USER_Id, formData)).data
-                if (data.status) {
+            this.isLoadingAvatar = true
+            this.editAlert = false
+            setTimeout(async () => {
+                if (this.selectedFile) {
+                    const formData = new FormData();
                     this.isAnnountion = true
+                    this.isLoadingAvatar = false
+                    formData.append("file", this.selectedFile);
+                    const data = (await AuthenticationService.updateAvatar(this.user.USER_Id, formData)).data
                     this.messageAnnoution = data.message
-                    this.editAlert = false
-                    setTimeout(() => {
-                        this.messageAnnoution = ''
-                        this.isAnnountion = false
-                    }, 3000)
-                } else {
-                    this.isAnnountion = true
-                    this.messageAnnoution = data.message
-                    this.editAlert = false
                     setTimeout(() => {
                         this.messageAnnoution = ''
                         this.isAnnountion = false
                     }, 3000)
                 }
-            }
+            }, 2000)
         },
         closeOptionChoose() {
             this.editAlert = false
@@ -188,12 +199,34 @@ export default {
             this.isDropdownOpen = false;
         },
     }, components: {
-        Nav, Footer, optionChoose, Bur
+        Nav, Footer, optionChoose, Bur, LoadingPage
     }
 }
 </script>
 
 <style scoped>
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.8));
+    background-size: 200% 100%;
+    animation: loading 2s linear infinite;
+    z-index: 9999999999999999999999999999999999999999999999;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
 .edit-profile {
     position: relative;
     width: calc(1024px/1.5);
@@ -226,6 +259,12 @@ h2 {
     gap: 18px;
 }
 
+.profile-photo {
+    width: 54px;
+    height: 54px;
+    position: relative;
+}
+
 .profile-photo img {
     width: 54px;
     height: 54px;
@@ -235,6 +274,13 @@ h2 {
     transition: filter 0.3s;
 }
 
+.sub-class {
+    position: absolute;
+    top: 3px;
+    left: 17px;
+}
+
+.profile-photo img.black-loading,
 .profile-photo img:hover {
     filter: brightness(0.7);
 }

@@ -1,8 +1,7 @@
 <template>
     <div>
-        <Header></Header>
-        <div class="HomeContent">
-            <NavMenu @makeNewPost="makeNewPost" />
+        <div class="HomeContent" ref="scrollContainer" @scroll="handleScroll">
+            <NavMenu @makeNew="makeNewPost" />
 
             <div class="HC-Post" v-for="post in posts" :key="post.content.POST_Id">
                 <div class="HC-Post-infor">
@@ -61,9 +60,9 @@
                     comment</div>
                 <input class="inputcomment" type="text" @pointerenter="" placeholder="Add a comment...">
             </div>
-
+            <LoadingPage class="loading-page-fix" />
             <NavRequestFriend></NavRequestFriend>
-
+            <Footer> </Footer>
             <div v-if="showComment" @click="showCommentBar" class="Comment-prevent"></div>
             <CommentPost v-if="showComment" :postId="postId_Comment" :userid="userid" :loadImgPost="loadimgpost"
                 :toggleHeart="toggleHeart" :loadImgUser="loadimg" :timeRequest="timeRequest" @updatePost="updatePost"
@@ -78,6 +77,8 @@ import NavMenu from "../components/Nav.vue"
 import NavRequestFriend from "../components/NavRequestFriend.vue"
 import AuthenticationService from "../services/AuthenticationService"
 import CommentPost from "../components/CommentPost.vue"
+import LoadingPage from '../components/LoadingPage.vue';
+
 export default {
     name: 'Home',
     data() {
@@ -90,17 +91,44 @@ export default {
             postId_Comment: [],
             showComment: false,
             hashTagsDataSearch: [],
+            currentPage: 1,
+            limitPage: 10,
+            isFetching: false, // Tránh việc gọi nhiều lần
+            hasMorePosts: true, // Ngừng khi không còn bài viết nào
+            isLoading: false,
+            fetchTimeout: null, // Dùng để quản lý thời gian chờ
+            delayBetweenFetches: 2000,
+            shouldFetchOnTimeout: false,
         }
     },
     components: {
         Footer,
         NavMenu,
         NavRequestFriend,
-        CommentPost
+        CommentPost, LoadingPage
     },
     props: ['id'],
     methods: {
-        async makeNewPost() { console.log(">> hlo"); await this.fetchPosts() },
+        handleScroll() {
+            const container = this.$refs.scrollContainer;
+            const scrollTop = container.scrollTop;
+            const scrollHeight = container.scrollHeight;
+            const clientHeight = container.clientHeight;
+
+            if (scrollTop + clientHeight >= scrollHeight - 200) {
+                if (this.fetchTimeout || this.isFetching) {
+                    // Lưu trạng thái để xử lý tự động sau khi fetchTimeout hết hạn
+                    this.shouldFetchOnTimeout = true;
+                    return;
+                }
+                this.fetchPosts(this.currentPage, this.limitPage);
+            }
+        },
+
+        async makeNewPost() {
+            console.log(">> make new in homepage");
+            // await this.fetchPosts()
+        },
         test(post) {
             console.log(post);
         },
@@ -114,36 +142,36 @@ export default {
             }
 
             try {
-
                 if (postAll.isHeartFilled) {
-                    console.log("like");
-
-                    await AuthenticationService.like(this.userid, {
+                    const check = await AuthenticationService.like(this.userid, {
                         POST_Id: postAll.content.POST_Id
                     });
+                    console.log(check.data)
 
-                } else if (!postAll.isHeartFilled) {
-                    console.log("un like");
+                    postAll.countLike++
 
-                    await AuthenticationService.unlike(this.userid, {
+                } else {
+                    const check = await AuthenticationService.unlike(this.userid, {
                         POST_Id: postAll.content.POST_Id
                     });
+                    postAll.countLike--
 
+                    console.log(check.data)
                 }
-
-                const updatedPosts = (await AuthenticationService.getposts()).data;
-                if (this.posts) {
-                    this.posts = updatedPosts.map(post => {
-                        const isCurrentUserLiked = post.likes.includes(this.userid);
-                        return {
-                            ...post,
-                            isHeartFilled: isCurrentUserLiked,
-                            activeIndex: 0,
-                            scrollTimeout: null,
-                            showFullContent: this.isContentOverFifteenWords(post.content.POST_Content)
-                        };
-                    });
-                }
+                console.log(postAll)
+                // const updatedPosts = (await AuthenticationService.getposts()).data;
+                // if (this.posts) {
+                //     this.posts = updatedPosts.map(post => {
+                //         const isCurrentUserLiked = post.likes.includes(this.userid);
+                //         return {
+                //             ...post,
+                //             isHeartFilled: isCurrentUserLiked,
+                //             activeIndex: 0,
+                //             scrollTimeout: null,
+                //             showFullContent: this.isContentOverFifteenWords(post.content.POST_Content)
+                //         };
+                //     });
+                // }
             } catch (error) {
 
             }
@@ -217,19 +245,53 @@ export default {
             if (postIndex > -1) {
                 this.posts[postIndex] = updatedPost;
             }
-        }, async fetchPosts() {
-            let postsData = (await AuthenticationService.getposts(this.userid)).data;
-            this.posts = postsData.map(post => {
-                const isCurrentUserLiked = post.likes.includes(this.userid);
-                return {
-                    ...post,
-                    isHeartFilled: isCurrentUserLiked,
-                    activeIndex: 0,
-                    scrollTimeout: null,
-                    showFullContent: this.isContentOverFifteenWords(post.content.POST_Content),
-                };
-            });
-        },
+        }, async fetchPosts(page = 1, limit = 10) {
+            try {
+                if (this.isFetching || !this.hasMorePosts) return;
+
+                this.isFetching = true;
+                this.isLoading = true; // Hiển thị hiệu ứng loading
+
+                // Fetch dữ liệu từ server
+                let postsData = (await AuthenticationService.getposts(this.userid, page, limit, this.posts.map((post) => post.content.POST_Id))).data;
+
+                if (postsData.length === 0) {
+                    this.hasMorePosts = false;
+                    return;
+                }
+
+                // Xử lý bài viết mới
+                const processedPosts = postsData.map(post => {
+                    const isCurrentUserLiked = post.likes.includes(this.userid);
+                    return {
+                        ...post,
+                        isHeartFilled: isCurrentUserLiked,
+                        activeIndex: 0,
+                        scrollTimeout: null,
+                        showFullContent: this.isContentOverFifteenWords(post.content.POST_Content),
+                    };
+                });
+
+                this.posts = [...this.posts, ...processedPosts];
+                this.currentPage++; // Tăng số trang sau khi tải xong
+            } catch (error) {
+                console.error("Error fetching posts:", error);
+            } finally {
+                this.isFetching = false;
+                this.isLoading = false; // Ẩn hiệu ứng loading
+
+                // Đặt thời gian chờ trước khi cho phép tải tiếp
+                this.fetchTimeout = setTimeout(() => {
+                    this.fetchTimeout = null;
+
+                    // Nếu cần tải thêm sau khi fetchTimeout hết hạn
+                    if (this.shouldFetchOnTimeout) {
+                        this.shouldFetchOnTimeout = false; // Reset trạng thái
+                        this.fetchPosts(this.currentPage); // Gọi fetchPosts lại
+                    }
+                }, this.delayBetweenFetches);
+            }
+        }
     },
     async mounted() {
         const token = localStorage.getItem("token");
@@ -250,13 +312,21 @@ export default {
         this.user = (await AuthenticationService.getUser(this.userid)).data
 
         // Fetch posts
-        await this.fetchPosts();
-    },
-
+        await this.fetchPosts(this.currentPage);
+    }, beforeDestroy() {
+        if (this.fetchTimeout) {
+            clearTimeout(this.fetchTimeout);
+        }
+    }
 }
 </script>
 
 <style scoped>
+.loading-page-fix {
+    margin: 48px 462px 48px 400px;
+    width: 478px;
+}
+
 .Comment-prevent {
     position: fixed;
     width: 100%;
@@ -271,7 +341,8 @@ export default {
     top: 0;
     margin: 0;
     width: 100%;
-    height: fit-content;
+    height: 100vh;
+    overflow-y: auto;
     position: relative;
 
     .HC-Post {

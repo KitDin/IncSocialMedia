@@ -142,15 +142,17 @@ export const updateInfoUser = {
     USER_Gender
   ) => {
     try {
-      const query = `UPDATE __USER_INFOR
-                      SET 
-                          USER_NICKNAME = ?,   
-                          USER_FIRSTNAME = ?, 
-                          USER_SUBNAME = ?, 
-                          USER_Bio = ?,
-                          USER_Gender = ?
-                      WHERE 
-                          USER_ID = ?;`;
+      const query = `
+      UPDATE __USER_INFOR
+      SET 
+          USER_NICKNAME = ?,   
+          USER_FIRSTNAME = ?, 
+          USER_SUBNAME = ?, 
+          USER_Bio = ?,
+          USER_Gender = ?
+      WHERE 
+          USER_ID = ?;
+    `;
       const [rs] = await pool.query(query, [
         USER_NickName,
         USER_FirstName,
@@ -159,10 +161,17 @@ export const updateInfoUser = {
         USER_Gender,
         USER_Id,
       ]);
-      if (rs.affectedRows > 0) return true;
-      return false;
+
+      if (rs.affectedRows === 0) {
+        return { status: false, message: "No rows affected. Check USER_ID." };
+      }
+      return { status: true, message: "Update successful." };
     } catch (error) {
-      return false;
+      console.error("Error updating user info:", error);
+      return { status: false, message: "An error occurred.", error };
     }
+  },
+  renewUpdateTime: async () => {
+    const query = `UPDATE __USER`;
   },
 };

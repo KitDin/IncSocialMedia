@@ -9,59 +9,93 @@
                 </div>
             </div>
 
-            <div class="comment">
-                <div class="user">
-                    <img @click="goProfile(postId.content.USER_Id)" :key="postId.countLike" class="user-Avatar"
-                        :src="loadImgUser(postId.content)" alt="">
-                    <p @click="goProfile(postId.content.USER_Id)" class="user-name">{{ postId.content.USER_NickName }}
-                    </p>
-                </div>
-                <hr>
 
-                <!-- comment -->
-                <div class="frame">
+            <div class="comment-post-full-content">
+                <div class="comment">
+                    <div class="user">
+                        <img @click="goProfile(postId.content.USER_Id)" :key="postId.countLike" class="user-Avatar"
+                            :src="loadImgUser(postId.content)" alt="">
+                        <p @click="goProfile(postId.content.USER_Id)" class="user-name">{{ postId.content.USER_NickName
+                            }}
+                        </p>
+                    </div>
+                    <hr>
+                    <!-- khung comment -->
+                    <div class="frame">
 
-                    <div class="user-comment" v-for="(comment, index) in comments" :key="index">
-                        <div class="user">
-                            <img @click="goProfile(comment.comment.USER_Id)" class="user-Avatar"
-                                :src="loadImgUser(comment.comment)" alt="">
-                            <p @click="goProfile(comment.comment.USER_Id)" class="user-name">{{
-                                comment.comment.USER_NickName
-                                }}</p>
-                            <p class="content-comment">{{ comment.comment.comment_Content }}</p>
-                            <div class="reply">
-                                <p class="time">{{ timeRequest(comment.comment.comment_Time) }}</p>
-                                <label for="textComment" class="btn-reply" @click="reply(comment, repli)">Reply</label>
+                        <!-- content -->
+                        <div class="user-comment">
+                            <div class="user">
+                                <img @click="goProfile(postId.content.USER_Id)" class="user-avatar"
+                                    :src="loadImgUser(postId.content)" alt="">
+                                <div class="user-comment-info">
+                                    <div class="user-comment-content">
+                                        <span @click="goProfile(postId.content.USER_Id)" class="user-name">{{
+                                            postId.content.USER_NickName
+                                            }}</span>
+                                        <span class="content-comment">{{ postId.content.POST_Content }}</span>
+                                        <span class="hashtags" v-for="hashtag in postId.hashtag"
+                                            :key="hashtag.hashtag_id">
+                                            {{ hashtag.hashtag_name }}
+                                        </span>
+                                    </div>
+                                    <div class="user-comment-order">
+                                        <p class="time">{{ timeRequest(postId.content.POST_Time) }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- comment -->
+                        <div class="user-comment" v-for="(comment, index) in comments" :key="index">
+                            <div class="user">
+                                <img @click="goProfile(comment.comment.USER_Id)" class="user-avatar"
+                                    :src="loadImgUser(comment.comment)" alt="">
+                                <div class="user-comment-info">
+                                    <div class="user-comment-content">
+                                        <span @click="goProfile(comment.comment.USER_Id)" class="user-name">{{
+                                            comment.comment.USER_NickName
+                                            }}</span>
+                                        <span class="content-comment">{{ comment.comment.comment_Content }}</span>
+                                    </div>
+                                    <div class="user-comment-order">
+                                        <p class="time">{{ timeRequest(comment.comment.comment_Time) }}</p>
+                                        <label for="textComment" class="btn-reply"
+                                            @click="reply(comment, repli)">Reply</label>
+                                    </div>
+                                    <div class="view-option" v-if="countReplyOnComment(comment)"
+                                        @click="showView(comment)">
+                                        <div class="line-center"></div>{{ !comment.isShowView
+                                            ?
+                                            `View
+                                        replies(${comment.reply.length})` : "Hide" }}
+                                    </div>
+                                    <div class="user-comment-reply" v-if="comment.isShowView">
+                                        <div class="user" v-for="(replys, index) in comment.reply" :key="index">
+                                            <img @click="goProfile(replys.USER_Id)" class="user-avatar"
+                                                :src="loadImgUser(comment.comment)" alt="">
+                                            <div class="user-comment-info">
+                                                <div class="user-comment-content">
+                                                    <span @click="goProfile(replys.USER_Id)" class="user-name">{{
+                                                        replys.USER_NickName
+                                                        }}</span>
+                                                    <span class="reple-to">@{{ replys.reply_to.USER_NickName }}</span>
+                                                    <span class="content-comment">{{
+                                                        replys.CommentReply_Content }}</span>
+                                                </div>
+                                                <div class="user-comment-order">
+                                                    <p class="time">{{ timeRequest(replys.CommentReply_Time) }}</p>
+                                                    <label for="textComment" class="btn-reply"
+                                                        @click="reply(comment, replys)">Reply</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                        <div class="reply-content" v-if="countReplyOnComment(comment)">
-                            <hr>
-                            <p class="view-option" v-if="!comment.isShowView" @click="showView(comment)">View replies
-                                ({{
-                                    comment.reply.length }})
-                            </p>
-                            <p class="view-option" v-if="comment.isShowView" @click="showView(comment)">Hide</p>
-                            <div class="user" v-if="comment.isShowView" v-for="replys in comment.reply">
-                                <img @click="goProfile(replys.USER_Id)" class="user-Avatar" :src="loadImgUser(replys)"
-                                    alt="">
-                                <p @click="goProfile(replys.USER_Id)" class="user-name">{{ replys.USER_NickName }}
-                                </p>
-                                <p class="content-comment" style="width: 55%;"> <span class="tag-name">@{{
-                                    replys.reply_to.USER_NickName
-                                        }}</span> {{
-                                            replys.CommentReply_Content }}</p>
-                                <div class="reply-more">
-                                    <p class="time">{{ timeRequest(replys.CommentReply_Time) }}</p>
-                                    <label for="textComment" class="btn-reply"
-                                        @click="reply(comment, replys)">Reply</label>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-
                 </div>
                 <!--   end commet -->
                 <hr>
@@ -91,12 +125,12 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </template>
 
 <script>
-import { ref } from 'vue';
 import AuthenticationService from "../services/AuthenticationService"
 
 
@@ -110,7 +144,7 @@ export default {
             comments: [],
             status: '',
             showIcon: false,
-            showLoader: false
+            showLoader: false, postData: []
         };
     },
     methods: {
@@ -267,13 +301,10 @@ export default {
         goProfile: Function
     }, async mounted() {
         this.fetchComments(); // Fetch comments initially when the component is mounted
-        // this.startPolling();
     }, watch: {
         textComment(value) {
             this.char = value.length;
         },
-    }, beforeDestroy() {
-        this.stopPolling();  // Ensure polling stops when the component is destroyed
     }
 }
 </script>
@@ -398,21 +429,16 @@ export default {
     margin: 0;
 }
 
-
-
 .comment {
     border-left: 1px silver solid;
     width: 486px;
-    /* height: 655.5px; */
-    height: 655.5px;
 }
 
 .comment .frame {
     overflow-y: scroll;
     scrollbar-width: none;
     width: 486px;
-    /* height: 655.5px; */
-    height: 450px;
+    height: 458px;
 }
 
 
@@ -420,9 +446,8 @@ export default {
     display: none;
 }
 
+
 .comment .user {
-    width: 470px;
-    height: fit-content;
     display: flex;
     padding: 10px 15px 10px 20px;
 }
@@ -433,7 +458,7 @@ hr {
     opacity: .1;
 }
 
-.comment .user .user-Avatar {
+.comment>.user>.user-Avatar {
     width: 38px;
     height: 38px;
     object-fit: cover;
@@ -442,7 +467,7 @@ hr {
     margin-right: 5px;
 }
 
-.comment .user .user-name {
+.comment>.user>.user-name {
     margin: 0;
     font-size: 13px;
     text-align: center;
@@ -453,109 +478,108 @@ hr {
     cursor: pointer;
 }
 
-.comment .user .content-comment {
+.comment>.user>.content-comment {
     position: relative;
     top: 50%;
     transform: translate(10px, 2px);
     margin-left: 3px;
 }
 
-.comment .user .content-comment .tag-name {
+.comment>.user>.content-comment>.tag-name {
     color: rgb(17, 64, 151);
     cursor: pointer;
+}
+
+.comment-post-full-content {
+    display: flex;
+    flex-direction: column;
+    height: 655.5px;
 }
 
 .user-comment {
     position: relative;
     display: flex;
-    flex-wrap: wrap;
     flex-direction: column;
     font-size: 13px;
 }
 
-
-
-.user-comment .reply {
+.user-comment .user {
     display: flex;
-    position: absolute;
-    width: 50px;
-    top: 28px;
-    left: 72px;
-    color: #737373;
+    flex-direction: row;
+    align-items: flex-start;
 }
 
-.user-comment .reply p {
+.user-comment .user .user-avatar {
+    height: 45px;
+    width: 45px;
+    object-fit: cover;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.user-comment .user .user-comment-info {
+    width: calc(100% - 45px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-comment .user .user-comment-info .user-comment-content span:first-child {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.user-comment .user .user-comment-info .user-comment-content .hashtags {
+    cursor: pointer;
+    color: #004c93;
+}
+
+.user-comment .user .user-comment-info .user-comment-order {
+    display: flex;
+    gap: 8px;
+}
+
+.user-comment .user .user-comment-info .user-comment-order p {
+    font-size: 12px;
+    color: #737373;
     margin: 0;
 }
 
-.user-comment .reply .time {
-    margin-right: 14px;
-}
-
-.user-comment .reply .btn-reply {
+.user-comment .user .user-comment-info .user-comment-order label {
+    color: #737373;
     font-weight: 500;
     cursor: pointer;
 }
 
-.user-comment .reply-content {
-    margin: 12px 0 12px 0;
-    position: relative;
-    left: 72px;
-    width: 30%;
+.user-comment .user .user-comment-info .view-option {
+    color: #737373;
+    font-weight: 500;
+    cursor: pointer;
+    align-items: center;
+    display: flex;
+    gap: 28px;
 }
 
-.user-comment .reply-content hr {
+.user-comment .user .user-comment-info .view-option .line-center {
     width: 24px;
-    opacity: 1;
-}
-
-.user-comment .reply-content .view-option {
-    margin: 0;
-    padding-left: 48px;
-    height: fit-content;
-    position: absolute;
-    top: -10px;
-    color: #737373;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-.reply-content .user {
-    position: relative;
-    margin: 0;
-    padding: 25px 0 0 0;
-}
-
-.reply-content .user .reply-more {
-    display: flex;
-    position: absolute;
-    width: 50px;
-    top: 44px;
-    left: 52px;
-    color: #737373;
-}
-
-.reply-content .user .reply-more .time {
-    margin-right: 14px;
-}
-
-.reply-content .user .reply-more .btn-reply {
-    cursor: pointer;
-    font-weight: 500;
+    height: .1px;
+    background-color: #000000;
 }
 
 .excute {
-    height: 145.5px;
-    /* margin: 18px 22px; */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .excute .icons {
     margin: 0;
-    padding: 12px 22px 8px 22px;
+    padding: 8px 22px 8px 22px;
     font-size: 24px;
     -webkit-text-stroke: 0.7px;
     cursor: pointer;
-    transition: all 0.5 ease;
+    transition: all 0.5s ease;
 }
 
 .excute .icons .icon {
@@ -577,7 +601,7 @@ hr {
 .excute .about {
     font-size: 14px;
     margin: 0;
-    padding: 0 22px 10px 22px;
+    padding: 0 22px 0 22px;
 }
 
 .excute .about h5 {
@@ -594,14 +618,15 @@ hr {
 
 .excute .addComment {
     border-top: #eae8e8 1px solid;
-
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    height: 100%;
 }
 
 .excute .addComment input {
     margin-left: 22px;
-    padding: 12px 0 0 0;
+    height: 100%;
     border: none;
     font-size: 14px;
     width: 90%;
@@ -609,8 +634,9 @@ hr {
 
 .excute .addComment .btn-post {
     border: none;
-    padding: 12px 0 0 0;
+    background-color: transparent;
     padding-right: 22px;
+    height: 100%;
     background-color: white;
     font-weight: bolder;
     color: rgb(186, 196, 215);
@@ -628,6 +654,11 @@ hr {
     color: rgb(17, 64, 151) !important;
     /* opacity: 0; */
     transition: opacity 0.5s, transform 0.5s;
+}
+
+.reple-to {
+    color: rgb(17, 64, 151) !important;
+    cursor: pointer;
 }
 
 .rotate-scale-down {

@@ -226,11 +226,11 @@ export const updateAvatar = async (req, res) => {
     return res.json(error);
   }
 };
+
 export const updateAllInforUser = async (req, res) => {
   try {
     const { userId } = req.params;
     const {
-      USER_Id,
       USER_NickName,
       USER_FirstName,
       USER_SubName,
@@ -238,31 +238,42 @@ export const updateAllInforUser = async (req, res) => {
       USER_Gender,
     } = req.body;
 
-    const rs = await updateInfoUser.updateAll(
-      USER_Id,
+    const result = await updateInfoUser.updateAll(
+      userId,
       USER_NickName,
       USER_FirstName,
       USER_SubName,
       USER_Bio,
       USER_Gender
     );
-    if (rs) {
-      return res.json({
+
+    console.log({
+      USER_NickName,
+      USER_FirstName,
+      USER_SubName,
+      USER_Bio,
+      USER_Gender,
+      userId,
+    });
+    if (result.status) {
+      return res.status(200).json({
         status: true,
-        message:
-          "Avatar updated! Looking good-thanks for refreshing your profile!",
+        message: result.message,
       });
     } else {
-      return res.json({
+      return res.status(400).json({
         status: false,
-        message: "",
+        message: result.message,
       });
     }
   } catch (error) {
     console.error(error);
-    return res.json({ error });
+    return res
+      .status(500)
+      .json({ status: false, message: "Server error.", error });
   }
 };
+
 export const getConversationUnreadController = async (req, res) => {
   try {
     const { id } = req.params;
