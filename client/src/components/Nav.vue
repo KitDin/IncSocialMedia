@@ -47,10 +47,11 @@
         <Search v-if="is_expanded && showSearchBar" :isOpen="showSearchBar"
             :class="!showSearchBar ? 'animationClosePar' : ''" />
 
+        <Notifications v-if="showNotification" :class="!showNotification ? 'animationClosePar' : ''" />
+
         <AlertComponents v-if="!isAlert" :message="alertMessage" />
         <Bur v-if="showPostBar" @closeBur="closePost" />
         <Post class="componentPost" v-if="showPostBar" @closePost="makeNewPost" />
-
     </div>
 </template>
 
@@ -60,6 +61,7 @@ import { RouterLink } from 'vue-router'
 import Search from './Search.vue'
 import Post from './Post.vue';
 import AlertComponents from './AlertComponents.vue';
+import Notifications from './notification/notifications.vue';
 import Bur from './Bur.vue'
 
 export default {
@@ -74,11 +76,12 @@ export default {
             isAlert: true,
             alertMessage: '',
             notificationMessages: 0,
+            showNotification: false,
             links: [
                 { id: 1, icon: "bi bi-house-door", icon_fill: "bi bi-house-door-fill", text: "Home", link_to: "Home" },
                 { id: 2, icon: "bi bi-search-heart", icon_fill: "bi bi-search-heart-fill", text: "Search", link_to: null, status: false },
                 { id: 3, icon: "bi bi-chat-dots", icon_fill: "bi bi-chat-dots-fill", text: "Messages", link_to: "Messages" },
-                { id: 4, icon: "bi bi-heart", icon_fill: "bi bi-heart-fill", text: "Notifications", link_to: null },
+                { id: 4, icon: "bi bi-heart", icon_fill: "bi bi-heart-fill", text: "Notifications", link_to: null, status: false },
                 { id: 5, icon: "bi bi-plus-circle", icon_fill: "bi bi-plus-circle-fill", text: "Create", link_to: null, status: false },
                 { id: 6, text: "Profile", avatar: this.user ? this.user.USER_AvatarURL : '', link_to: "Profile" },
             ],
@@ -104,19 +107,23 @@ export default {
         },
         handleItemClick(link) {
             if (link.id === 2) {
-                this.showSearchBar = !this.showSearchBar
-                link.status = !link.status
-                if (!this.is_expanded) {
-                    this.is_expanded = !this.is_expanded
-                } else if (this.is_expanded) {
-                    this.is_expanded = !this.is_expanded
+                if (this.links[3].status) {
+                    this.links[3].status = false;
+                    this.showNotification = false;
                 }
+                link.status = !link.status;
+                this.showSearchBar = link.status;
+                this.is_expanded = link.status;
+
             } else if (link.id === 4) {
-                if (!this.is_expanded) {
-                    this.is_expanded = !this.is_expanded
-                } else if (this.is_expanded) {
-                    this.is_expanded = !this.is_expanded
+                if (this.links[1].status) {
+                    this.links[1].status = false;
+                    this.showSearchBar = false;
                 }
+                link.status = !link.status;
+                this.showNotification = link.status
+                this.is_expanded = link.status;
+
             } else if (link.id === 5) {
                 this.showPostBar = !this.showPostBar
                 link.status = !link.status
@@ -177,7 +184,7 @@ export default {
             this.notificationMessages = (await AuthenticationService.getNumberNotification(this.userid)).data
         }, 1000)
     },
-    components: { RouterLink, Search, Post, AlertComponents, Bur },
+    components: { RouterLink, Search, Post, AlertComponents, Bur, Notifications },
 }
 </script>
 

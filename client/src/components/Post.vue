@@ -125,11 +125,7 @@ export default {
         debouncedFetchHashtag: debounce(async function (currentWord) {
             try {
                 const hashtag = await AuthenticationService.getHashTag(currentWord);
-                if (hashtag.data.status) {
-                    this.hashTagsDataSearch = hashtag.data.hashtag;
-                } else {
-                    this.hashTagsDataSearch = [];
-                }
+                this.hashTagsDataSearch = hashtag.data.hashtag || [];
             } catch (error) {
                 console.error("Error fetching hashtags:", error);
             } finally {
@@ -154,9 +150,11 @@ export default {
             // Đặt lại `isHashtag` để ẩn danh sách hashtag
             this.isHashtag = false;
         },
-        openHashTags() {
+        async openHashTags() {
+            const hashtag = await AuthenticationService.getHashTag();
+            this.hashTagsDataSearch = hashtag.data.hashtag || [];
+            this.isLoading = true;
             this.isHashTag != this.isHashtag
-            this.textarea += "#"
         },
         loadimg(user) {
             if (user && user.USER_AvatarURL) {
@@ -214,22 +212,6 @@ export default {
             } finally {
                 this.isLoadingSubmit = false;
             }
-        },
-        dataURItoBlob(dataURI) {
-            const byteString = atob(dataURI.split(',')[1]);
-            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            return new Blob([ab], { type: mimeString });
-        },
-        uuid() {
-            var temp_url = URL.createObjectURL(new Blob());
-            var uuid = temp_url.toString();
-            URL.revokeObjectURL(temp_url);
-            return uuid.substr(uuid.lastIndexOf('/') + 1);
         }, showPost() {
             this.$emit('closePost');
         }, showSelect() {

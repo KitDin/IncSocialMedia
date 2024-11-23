@@ -8,6 +8,7 @@ import {
   getConversationUnreadController,
   updateAvatar,
   updateAllInforUser,
+  getNotificationsOfUser,
 } from "../controllers/user.controller.js";
 
 import {
@@ -97,14 +98,13 @@ router
   .put(postReplyComment)
   .post(postComment)
   .get(getComments);
-
 // router.route("/message/:id").get(getConversationsOffAUser);
-
 router
   .route("/message/:id")
   .get(getConversationsOffAUser)
   .post(createComversation)
   .put(deleteConversation);
+router.route("/notifications/all/:id").get(getNotificationsOfUser);
 router.route("/notifications/message/:id").get(getConversationUnreadController);
 router.route("/hashtag/search").get(getHashtagByNameController);
 router.route("/hashtag/recommend/:id").get(getHashtagRecommendForAUser);

@@ -3,14 +3,17 @@
         <LoadingPage style="margin: auto auto;" v-show="isLoading" />
         <div class="hashtag-info" v-for="(hashTag, index) in hashTags" :key="index"
             @click="$emit('getHasgTag', hashTag)" v-show="!isLoading">
-            <p class="name">{{ hashTag.hashtag_name }}</p>
-            <p class="count-post">{{ hashTag.post_count.toLocaleString('en-US') }} posts</p>
+            <p class="name">{{ hashTag ? hashTag.hashtag_name : '' }}</p>
+            <p class="count-post">{{ hashTag && hashTag.post_count ? hashTag.post_count.toLocaleString('en-US') : '' }}
+                posts</p>
         </div>
         <div class="for-you" v-show="!isLoading && hashTagsRecommend.length > 0">Hashtag for you</div>
         <div class="hashtag-info" v-for="(hashTag, index) in hashTagsRecommend" :key="hashTag.hashtag_id"
             @click="$emit('getHasgTag', hashTag)" v-show="!isLoading && hashTagsRecommend.length > 0">
-            <p class="name">{{ hashTag.hashtag_name }}</p>
-            <p class="count-post">{{ hashTag.post_count.toLocaleString('en-US') }} posts</p>
+            <p class="name">{{ hashTag ? hashTag.hashtag_name : '' }}</p>
+            <p class="count-post">{{ hashTag && hashTag.post_count && hashTag.post_count.toLocaleString('en-US') ?
+                hashTag.post_count.toLocaleString('en-US') : '' }}
+                posts</p>
         </div>
     </div>
 </template>

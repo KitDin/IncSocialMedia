@@ -73,7 +73,7 @@
                                     <div class="user-comment-reply" v-if="comment.isShowView">
                                         <div class="user" v-for="(replys, index) in comment.reply" :key="index">
                                             <img @click="goProfile(replys.USER_Id)" class="user-avatar"
-                                                :src="loadImgUser(comment.comment)" alt="">
+                                                :src="loadImgUser(replys)" alt="">
                                             <div class="user-comment-info">
                                                 <div class="user-comment-content">
                                                     <span @click="goProfile(replys.USER_Id)" class="user-name">{{
@@ -155,7 +155,6 @@ export default {
             this.textComment = !reply ? `@${comment.comment.USER_NickName + ' '}` : `@${reply.USER_NickName + ' '}`;
             this.repliedUsername = !reply ? comment.comment.USER_id : reply.USER_id;
             this.replyComment = comment.comment.comment_id;
-            console.log(this.repliedUsername);
         },
         countReplyOnComment(comment) {
             return comment.reply.length > 0

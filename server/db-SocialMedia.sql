@@ -22,7 +22,6 @@ CREATE TABLE __USER_INFOR(
 );
 
 CREATE TABLE __FRIEND_SHIP(
-    FS_ID INT AUTO_INCREMENT PRIMARY KEY,
     USER_ID1 VARCHAR(200),
     USER_ID2 VARCHAR(200),
     FS_CREATEAT DATETIME DEFAULT NOW(),
@@ -31,7 +30,6 @@ CREATE TABLE __FRIEND_SHIP(
 );
 
 CREATE TABLE __FRIEND_REQUEST(
-    FR_ID INT AUTO_INCREMENT PRIMARY KEY,
     USER_SENDERID VARCHAR(200),
     USER_RECID VARCHAR(200),
     FR_STATUSREQ ENUM('accept', 'pend', 'def') DEFAULT 'pend',
@@ -99,7 +97,8 @@ CREATE TABLE __REPLYCOMMENT(
     COMMENTREPLY_CONTENT VARCHAR(100),
     COMMENTREPLY_TIME DATETIME,
     PRIMARY KEY(REPLYCOMMENT, COMMENTREPLY_ID),
-    FOREIGN KEY(POST_ID) REFERENCES __POSTS(POST_ID) ON DELETE CASCADE ON UPDATE CASCADE FOREIGN KEY(USER_ID) REFERENCES __USER(USER_ID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY(POST_ID) REFERENCES __POSTS(POST_ID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY(USER_ID) REFERENCES __USER(USER_ID) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY(REPLYCOMMENT) REFERENCES __COMMENTS(COMMENT_ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -142,7 +141,7 @@ CREATE TABLE __MESSAGES(
 CREATE TABLE __NOTIFICATIONS (
     NOTIF_ID INT AUTO_INCREMENT PRIMARY KEY,
     USER_ID VARCHAR(200) NOT NULL, -- User receiving the notification
-    TYPE ENUM('message', 'friend_request', 'like', 'comment') NOT NULL,
+    TYPE ENUM('message', 'friend_request', 'like', 'comment', 'reply_comment') NOT NULL,
     REF_ID VARCHAR(200), -- Reference ID (e.g., message ID or friend request ID)
     CONTENT VARCHAR(255), -- Notification content or summary
     STATUS ENUM('unread', 'read') DEFAULT 'unread',
@@ -164,7 +163,9 @@ BEGIN
     WHERE
         HASHTAG_ID = NEW.HASHTAG_ID;
 END $ DELIMITER;
+ 
 
+--
 DELIMITER $$ CREATE TRIGGER NEW_MESSAGE_NOTIFICATION AFTER INSERT ON __MESSAGES FOR EACH ROW BEGIN
  -- Insert a notification for the receiver when a new message is sent
 DECLARE RECEIVER_ID VARCHAR(
@@ -197,4 +198,174 @@ IF RECEIVER_ID IS NOT NULL THEN
     );
 END IF;
 END $$ DELIMITER;
-SHOW TABLES FROM INC_SOCIALMEDIA;
+ 
+--
+CREATE EVENT AUTO_DELETE_EMPTY_CONVERSATIONS ON SCHEDULE EVERY 5 MINUTE DO
+DELETE FROM __CONVERSATIONS
+WHERE
+    CON_ID NOT IN (
+        SELECT
+            DISTINCT CON_ID
+        FROM
+            __MESSAGES
+    )
+    AND TIMESTAMPDIFF(MINUTE, CON_TIMECREATE, NOW()) > 5;
+ 
+--
+DELIMITER $$ CREATE TRIGGER AFTER_FRIEND_REQUEST AFTER INSERT ON __FRIEND_REQUEST FOR EACH ROW BEGIN INSERT INTO __NOTIFICATIONS (
+    USER_ID,
+    TYPE,
+    REF_ID,
+    CONTENT
+) VALUES (
+    NEW.USER_RECID,
+    'friend_request',
+    NEW.USER_SENDERID,
+    CONCAT('You have a new friend request from user ID ', NEW.USER_SENDERID)
+);
+END;
+$$ DELIMITER;
+ 
+--
+DELIMITER /
+/
+
+CREATE TRIGGER AFTER_FRIEND_SHIP_INSERT AFTER
+    INSERT ON __FRIEND_SHIP FOR EACH ROW
+BEGIN
+ 
+    -- Xoá thông báo lời mời kết bạn giữa hai người dùng
+    DELETE FROM __NOTIFICATIONS
+    WHERE
+        TYPE = 'friend_request'
+        AND ( (USER_ID = NEW.USER_ID1
+        AND REF_ID = NEW.USER_ID2)
+        OR (USER_ID = NEW.USER_ID2
+        AND REF_ID = NEW.USER_ID1) );
+ 
+    -- Thông báo cho USER_ID1 rằng USER_ID2 đã trở thành bạn bè
+    INSERT INTO __NOTIFICATIONS (
+        USER_ID,
+        TYPE,
+        REF_ID,
+        CONTENT
+    ) VALUES (
+        NEW.USER_ID1,
+        'friend_request',
+        NEW.USER_ID2,
+        CONCAT('You are now friends with user ID ', NEW.USER_ID2)
+    );
+ 
+    -- Thông báo cho USER_ID2 rằng USER_ID1 đã trở thành bạn bè
+    INSERT INTO __NOTIFICATIONS (
+        USER_ID,
+        TYPE,
+        REF_ID,
+        CONTENT
+    ) VALUES (
+        NEW.USER_ID2,
+        'friend_request',
+        NEW.USER_ID1,
+        CONCAT('You are now friends with user ID ', NEW.USER_ID1)
+    );
+END;
+ 
+
+--
+// DELIMITER;
+DELIMITER // CREATE TRIGGER AFTER_FRIEND_SHIP_DELETE AFTER
+DELETE ON __FRIEND_SHIP FOR EACH ROW BEGIN
+ -- Xoá tất cả thông báo liên quan giữa hai người dùng
+DELETE FROM __NOTIFICATIONS
+WHERE
+    (USER_ID = OLD.USER_ID1
+    AND REF_ID = OLD.USER_ID2)
+    OR (USER_ID = OLD.USER_ID2
+    AND REF_ID = OLD.USER_ID1);
+END;
+// DELIMITER;
+ 
+--
+DELIMITER /
+/
+
+CREATE TRIGGER AFTER_LIKE_INSERT AFTER
+    INSERT ON __LIKES FOR EACH ROW
+BEGIN
+ 
+    -- Lấy user ID của chủ sở hữu bài viết
+    DECLARE
+        POST_OWNER VARCHAR(200);
+        SELECT     USER_ID INTO POST_OWNER FROM __POSTS WHERE POST_ID = NEW.POST_ID;
+        IF         POST_OWNER != NEW.USER_ID THEN
+            INSERT INTO __NOTIFICATIONS (
+                USER_ID,
+                TYPE,
+                REF_ID,
+                CONTENT
+            ) VALUES (
+                POST_OWNER,
+                'like',
+                NEW.POST_ID,
+                NEW.USER_ID
+            );
+        END IF;
+    END;
+    // DELIMITER;
+    DELIMITER // CREATE TRIGGER AFTER_COMMENT_INSERT AFTER INSERT ON __COMMENTS FOR EACH ROW BEGIN
+ -- Lấy user ID của chủ sở hữu bài viết
+    DECLARE POST_OWNER VARCHAR(
+        200
+    );
+    SELECT
+        USER_ID INTO POST_OWNER
+    FROM
+        __POSTS
+    WHERE
+        POST_ID = NEW.POST_ID;
+    IF POST_OWNER != NEW.USER_ID THEN
+        INSERT INTO __NOTIFICATIONS (
+            USER_ID,
+            TYPE,
+            REF_ID,
+            CONTENT
+        ) VALUES (
+            POST_OWNER,
+            'comment',
+            NEW.COMMENT_ID,
+            CONCAT(NEW.USER_ID)
+        );
+    END IF;
+END;
+// DELIMITER;
+ 
+--
+DELIMITER /
+/
+
+CREATE TRIGGER AFTER_REPLY_COMMENT_INSERT AFTER
+    INSERT ON __REPLYCOMMENT FOR EACH ROW
+BEGIN
+ 
+    -- Lấy user ID của người đã viết bình luận gốc
+    DECLARE
+        COMMENT_OWNER VARCHAR(200);
+        SELECT        USER_ID INTO COMMENT_OWNER FROM __COMMENTS WHERE COMMENT_ID = NEW.REPLYCOMMENT;
+        IF            COMMENT_OWNER != NEW.USER_ID THEN
+            INSERT INTO __NOTIFICATIONS (
+                USER_ID,
+                TYPE,
+                REF_ID,
+                CONTENT
+            ) VALUES (
+                COMMENT_OWNER,
+                'reply_comment',
+                NEW.COMMENTREPLY_ID,
+                CONCAT('Your comment has been replied to by user ID ', NEW.USER_ID)
+            );
+        END IF;
+    END;
+    // DELIMITER;
+ 
+    --
+    SHOW TABLES FROM INC_SOCIALMEDIA;

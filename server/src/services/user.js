@@ -52,6 +52,19 @@ export async function getUserById(id) {
   return row[0];
 }
 
+export async function getUserByIdShortInfo(id) {
+  try {
+    const [row] = await pool.query(
+      `select USER_Id, USER_FirstName, USER_SubName, USER_NickName, 
+            USER_AvatarURL from __USER_INFOR 
+           where USER_Id = ?;
+    `,
+      [id]
+    );
+    return row;
+  } catch (error) {}
+}
+
 export async function getAccountName_Email(accountName, email) {
   const [row] = await pool.query(
     `

@@ -3,24 +3,9 @@
         <h2 class="h2">Search</h2>
         <input v-model="searchQuery" @input="handleInput" type="text" class="inputSearch" placeholder="Search">
         <div class="search-loader" v-if="searching">
-
-            <!-- <div class="rectangles">
-                <div class="rect"></div>
-                <div class="rect"></div>
-                <div class="rect"></div>
-            </div> -->
         </div>
 
 
-        <!-- <div v-if="searching && searchResults.length === 0" class="loading-indicator">
-            <div class="loader-search" v-if="!showNoResults">
-                <div class="rect-frame rect1"></div>
-                <div class="rect-frame rect2"></div>
-                <div class="rect-frame rect3"></div>
-                <div class="rect-frame rect4"></div>
-                <div class="rect-frame rect5"></div>
-            </div>
-        </div> -->
         <h6 class="recent">Recent</h6>
         <div class="noResults" v-if="showNoResults">
             No results found.

@@ -3,6 +3,47 @@ import {
   getCombinedRecommendations,
   recommendPostsForUser,
 } from "../services/recomment.js";
+
+export async function getImgOfPostById(id) {
+  try {
+    const [images] = await pool.query(
+      `SELECT POST_ImgURL FROM __IMGs_POST WHERE POST_Id = ?`,
+      [id]
+    );
+
+    return images.length > 0 ? images : "";
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
+export async function getInforOfReplyCommentById(replyId) {
+  try {
+    const get = `select CommentReply_Content, p.POST_Id,POST_ImgURL, rc.USER_Id, USER_NickName ,
+                USER_AvatarURL from __replycomment rc join __IMGs_POST p on rc.post_id = p.post_id 
+								join __user_infor ui on rc.user_id = ui.user_id where commentreply_id = ?;`;
+    const [query] = await pool.query(get, [replyId]);
+    return query.length > 0 ? query : "";
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
+export async function getInfoCommentById(commentId) {
+  try {
+    const get = `select c.COMMENT_Content, c.POST_Id , ui.USER_NickName,
+    ui.USER_AvatarURL,UI.USER_Id from __comments c join __user_infor ui on 
+    c.user_id = ui.user_id where comment_id =? ;`;
+    const [query] = await pool.query(get, commentId);
+    return query.length > 0 ? query : "";
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
 export async function APost(id) {
   const [rows] = await pool.query(
     "SELECT * FROM __POSTs p join __USER_Infor u on p.USER_Id = u.USER_Id WHERE POST_Id=?",
@@ -51,7 +92,6 @@ FROM (
   };
 
   postFull.push(postWithImages);
-
   return postFull;
 }
 

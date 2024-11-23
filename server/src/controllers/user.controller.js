@@ -26,6 +26,12 @@ import {
   getConversationUnread,
   getMessagesUnreadByConversationId,
 } from "../services/chatting.js";
+import { getNotificationsByUserId } from "../services/notification.js";
+import {
+  getImgOfPostById,
+  getInfoCommentById,
+  getInforOfReplyCommentById,
+} from "../services/post.js";
 
 export async function getUsersController(req, res) {
   const users = await getUsers();
@@ -181,7 +187,6 @@ export async function login(req, res) {
       const token = jwt.sign(getid, process.env.JSON_WEB_TOKEN_KEY, {
         expiresIn: "100d",
       });
-      console.error("error");
 
       return res.json({
         status: "successful",
@@ -190,8 +195,6 @@ export async function login(req, res) {
         assetToken: token,
       });
     } else {
-      console.error("error");
-
       return res.json({
         status: "error",
         error: "Your username or password is not correct",
@@ -296,5 +299,125 @@ export const getConversationUnreadController = async (req, res) => {
   } catch (error) {
     console.error("Error fetching unread conversations:", error);
     res.status(500).json({ error: "Error fetching unread conversations" });
+  }
+};
+
+export const getNotificationsOfUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notifications = await getNotificationsByUserId(id);
+
+    // Nhóm thông báo
+    const groupedNotifications = {
+      new: [],
+      thisMonth: [],
+      earlier: [],
+    };
+
+    // Lưu các `like` cần lấy bài viết
+    const postsToFetch = new Map(); // Map để tránh trùng lặp `REF_ID`
+    const replyCommentToFetch = new Map();
+    const commentToFetch = new Map();
+
+    for (const noti of notifications) {
+      const { TYPE, REF_ID, CONTENT, CREATED_AT, STATUS, notification_group } =
+        noti;
+
+      // Xác định nhóm của thông báo
+      const group = groupedNotifications[notification_group];
+
+      if (TYPE === "like") {
+        // Đánh dấu cần lấy thông tin bài đăng
+        if (!postsToFetch.has(REF_ID)) {
+          postsToFetch.set(REF_ID, null);
+        }
+
+        const existingLike = group.find(
+          (item) => item.type === "like" && item.ref_id === REF_ID
+        );
+
+        if (existingLike) {
+          existingLike.users.push(CONTENT);
+        } else {
+          group.push({
+            type: "like",
+            ref_id: REF_ID,
+            users: [CONTENT],
+            created_at: CREATED_AT,
+            status: STATUS,
+          });
+        }
+      } else if (TYPE === "comment" || TYPE === "reply_comment") {
+        if (TYPE === "comment") {
+          commentToFetch.set(REF_ID, null);
+        } else {
+          replyCommentToFetch.set(REF_ID, null);
+        }
+
+        group.push({
+          type: TYPE,
+          ref_id: REF_ID,
+          content: CONTENT,
+          created_at: CREATED_AT,
+          status: STATUS,
+        });
+      } else {
+        group.push({
+          type: TYPE,
+          ref_id: REF_ID,
+          content: CONTENT,
+          created_at: CREATED_AT,
+          status: STATUS,
+        });
+      }
+    }
+
+    // Lấy thông tin bài viết từ REF_ID
+    const postDetails = await Promise.all(
+      Array.from(postsToFetch.keys()).map(async (postId) => {
+        const post = await getImgOfPostById(postId);
+        postsToFetch.set(postId, post.length > 0 ? post[0] : null);
+      })
+    );
+
+    const replyDetails = await Promise.all(
+      Array.from(replyCommentToFetch.keys()).map(async (replyId) => {
+        const reply = await getInforOfReplyCommentById(replyId);
+        replyCommentToFetch.set(replyId, reply.length > 0 ? reply : null);
+      })
+    );
+
+    const commentDetails = await Promise.all(
+      Array.from(commentToFetch.keys()).map(async (commentId) => {
+        const comment = await getInfoCommentById(commentId);
+        commentToFetch.set(commentId, comment.length > 0 ? comment : null);
+      })
+    );
+    // Cập nhật thông tin bài viết vào `like`
+    Object.values(groupedNotifications).forEach((group) => {
+      group.forEach((noti) => {
+        if (noti.type === "like" && postsToFetch.has(noti.ref_id)) {
+          noti.post = postsToFetch.get(noti.ref_id); // Gắn thông tin bài viết
+          if (noti.users.length > 3) {
+            console.log(noti.ref_id + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+          }
+        }
+        if (
+          noti.type === "reply_comment" &&
+          replyCommentToFetch.has(noti.ref_id)
+        ) {
+          noti.post = replyCommentToFetch.get(noti.ref_id);
+        }
+
+        if (noti.type === "comment" && commentToFetch.has(noti.ref_id)) {
+          noti.post = commentToFetch.get(noti.ref_id);
+        }
+      });
+    });
+    // console.log(replyCommentToFetch);
+    return res.json({ status: true, notifications: groupedNotifications });
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ status: false });
   }
 };

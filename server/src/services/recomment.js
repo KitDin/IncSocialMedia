@@ -127,14 +127,25 @@ async function getPostsByHashtags(hashtags, userId) {
   // Lấy các bài đăng chứa hashtag gợi ý nhưng người dùng chưa tương tác, và loại trừ bài đăng của chính người dùng
   const [posts] = await pool.query(
     `
-    SELECT DISTINCT pt.POST_ID
-    FROM __POST_TOPICS pt
-    LEFT JOIN __LIKES l ON pt.POST_ID = l.POST_ID AND l.USER_ID = ?
-    LEFT JOIN __COMMENTS c ON pt.POST_ID = c.POST_ID AND c.USER_ID = ?
-    WHERE pt.HASHTAG_ID IN (?) AND l.POST_ID IS NULL AND c.POST_ID IS NULL
-    AND pt.USER_ID != ? 
-    ORDER BY pt.POST_ID DESC
-    LIMIT 10;
+    SELECT
+    DISTINCT PT.POST_ID
+FROM
+    __POST_TOPICS PT
+    LEFT JOIN __LIKES L
+    ON PT.POST_ID = L.POST_ID
+    AND L.USER_ID = ?
+    LEFT JOIN __COMMENTS C
+    ON PT.POST_ID = C.POST_ID
+    AND C.USER_ID = ?
+    JOIN __POSTS P
+    ON P.POST_ID = PT.POST_ID
+WHERE
+    PT.HASHTAG_ID IN (?)
+    AND L.POST_ID IS NULL
+    AND C.POST_ID IS NULL
+    AND P.USER_ID != ?
+ORDER BY
+    PT.POST_ID DESC;
   `,
     [userId, userId, hashtags, userId]
   );
