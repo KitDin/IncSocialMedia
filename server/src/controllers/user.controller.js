@@ -7,6 +7,7 @@ import {
   checkAccout_Password,
   setInforUser,
   updateInfoUser,
+  getUserByIdShortInfo,
 } from "../services/user.js";
 
 import {
@@ -315,9 +316,10 @@ export const getNotificationsOfUser = async (req, res) => {
     };
 
     // Lưu các `like` cần lấy bài viết
-    const postsToFetch = new Map(); // Map để tránh trùng lặp `REF_ID`
+    const postsToFetch = new Map();
     const replyCommentToFetch = new Map();
     const commentToFetch = new Map();
+    const userToFetch = new Map();
 
     for (const noti of notifications) {
       const { TYPE, REF_ID, CONTENT, CREATED_AT, STATUS, notification_group } =
@@ -337,12 +339,14 @@ export const getNotificationsOfUser = async (req, res) => {
         );
 
         if (existingLike) {
-          existingLike.users.push(CONTENT);
+          const user = await getUserByIdShortInfo(CONTENT);
+          existingLike.users.push(user[0]);
         } else {
+          const user = await getUserByIdShortInfo(CONTENT);
           group.push({
             type: "like",
             ref_id: REF_ID,
-            users: [CONTENT],
+            users: [user[0]],
             created_at: CREATED_AT,
             status: STATUS,
           });
@@ -383,23 +387,24 @@ export const getNotificationsOfUser = async (req, res) => {
     const replyDetails = await Promise.all(
       Array.from(replyCommentToFetch.keys()).map(async (replyId) => {
         const reply = await getInforOfReplyCommentById(replyId);
-        replyCommentToFetch.set(replyId, reply.length > 0 ? reply : null);
+        replyCommentToFetch.set(replyId, reply.length > 0 ? reply[0] : null);
       })
     );
 
     const commentDetails = await Promise.all(
       Array.from(commentToFetch.keys()).map(async (commentId) => {
         const comment = await getInfoCommentById(commentId);
-        commentToFetch.set(commentId, comment.length > 0 ? comment : null);
+        commentToFetch.set(commentId, comment.length > 0 ? comment[0] : null);
       })
     );
     // Cập nhật thông tin bài viết vào `like`
     Object.values(groupedNotifications).forEach((group) => {
-      group.forEach((noti) => {
+      group.forEach(async (noti) => {
         if (noti.type === "like" && postsToFetch.has(noti.ref_id)) {
           noti.post = postsToFetch.get(noti.ref_id); // Gắn thông tin bài viết
           if (noti.users.length > 3) {
-            console.log(noti.ref_id + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            noti.stillUser = noti.users.length - 3;
+            noti.users = noti.users.slice(0, 3);
           }
         }
         if (

@@ -16,13 +16,22 @@
 </template>
 
 <script>
+import AuthenticationService from '../../services/AuthenticationService';
 import CardNotification from './cardNotification.vue';
 export default {
     data() {
         return {
             notifications: [],
         }
-    }, props: {
+    },
+    methods: {
+
+    },
+    async mounted() {
+        const test = await AuthenticationService.getAllNotification(2)
+        console.log(test)
+    }
+    , props: {
 
     }, components: {
         CardNotification

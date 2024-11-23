@@ -61,8 +61,11 @@ export async function getUserByIdShortInfo(id) {
     `,
       [id]
     );
-    return row;
-  } catch (error) {}
+    return row.length > 0 ? row : false;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
 }
 
 export async function getAccountName_Email(accountName, email) {

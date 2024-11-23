@@ -123,5 +123,8 @@ export default {
   },
   updateAllInfo(id, data) {
     return Api().put(`edit/profile/${id}`, data);
+  },
+  getAllNotification(id) {
+    return Api().get(`/notifications/all/${id}`);
   }
 };
