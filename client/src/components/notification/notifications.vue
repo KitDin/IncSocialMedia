@@ -7,16 +7,14 @@
                 <div class="notifications-new" v-for="(notification, index) in notifications.new" :key="index + 1">
                     <CardNotificationLike v-if="notification && notification.type === 'like'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-<<<<<<< HEAD
                     <CardNotificationComment v-if="notification && notification.type === 'comment'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
                     <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
                     <CardNotificationRequestFriend
                         v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
-                        :notification="notification" :userId="userId" />
-=======
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
+                        :notification="notification" :userId="userId" @acceptFriend="acceptFriend" />
+
                 </div>
             </div>
 
@@ -29,14 +27,11 @@
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
                     <CardNotificationComment v-if="notification && notification.type === 'comment'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-<<<<<<< HEAD
                     <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
                     <CardNotificationRequestFriend
                         v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
-                        :notification="notification" :userId="userId" />
-=======
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
+                        :notification="notification" :userId="userId" @acceptFriend="acceptFriend" />
                 </div>
             </div>
 
@@ -46,16 +41,13 @@
                 <div class="notification-earlier" v-for="(notification, index) in notifications.earlier">
                     <CardNotificationLike v-if="notification && notification.type === 'like'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-<<<<<<< HEAD
                     <CardNotificationComment v-if="notification && notification.type === 'comment'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
                     <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
                         :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
                     <CardNotificationRequestFriend
                         v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
-                        :notification="notification" :userId="userId" />
-=======
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
+                        :notification="notification" :userId="userId" @acceptFriend="acceptFriend" />
                 </div>
             </div>
 
@@ -67,11 +59,8 @@
 import AuthenticationService from '../../services/AuthenticationService';
 import CardNotificationLike from './cardNotificationLike.vue';
 import CardNotificationComment from './cardNotificationComment.vue';
-<<<<<<< HEAD
 import CardNotificationReplyComment from './cardNotificationReplyComment.vue';
 import CardNotificationRequestFriend from './cardNotificationFriend.vue';
-=======
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
 
 export default {
     data() {
@@ -80,6 +69,9 @@ export default {
         }
     },
     methods: {
+        acceptFriend(id) {
+            this.$emit('acceptFriend', id)
+        },
         goPostDetail(id) {
             this.$emit('goPostDetail', id)
         },
@@ -94,20 +86,12 @@ export default {
         }
     },
     async mounted() {
-<<<<<<< HEAD
         this.fetchNotifications(this.userId)
-=======
-        this.fetchNotifications()
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
     }
     , props: {
         userId: { type: String }
     }, components: {
-<<<<<<< HEAD
         CardNotificationLike, CardNotificationComment, CardNotificationReplyComment, CardNotificationRequestFriend
-=======
-        CardNotificationLike, CardNotificationComment
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
     }
 }
 

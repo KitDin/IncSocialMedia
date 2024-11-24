@@ -33,15 +33,7 @@
                 <div class="scale-up-hor-left" v-if="user.rabang"></div>
                 <i class="bi bi-check-circle-fill rotate-scale-up" v-if="user.tick"></i>
             </div>
-            <!-- <div class="loader" v-if="user.check">
-                <div class="rectangles">
-                    <div class="rect"></div>
-                    <div class="rect"></div>
-                    <div class="rect"></div>
-                </div>
-            </div> -->
         </div>
-        <!-- <div class="succ">successful</div> -->
         <router-view />
         <Footer class="footer"></Footer>
         <div class="tpl-fr-fl" v-show="isFriend" @click="showAllRequest"></div>
@@ -130,6 +122,37 @@ export default {
         },
         goProfileOther(idother) {
             this.$router.push(`/profile/${idother.USER_Id}`)
+        }, async removeUserFromList(id) {
+            try {
+                // Tìm người dùng cần xử lý trước khi xóa
+                const user = this.users.find(user => user.USER_Id === id);
+
+                if (!user) {
+                    console.error(`User with USER_Id ${id} not found.`);
+                    return;
+                }
+
+                // Cập nhật trạng thái `rabang` và `tick`
+                user.rabang = true;
+                setTimeout(() => {
+                    user.tick = true;
+                    setTimeout(async () => {
+                        // Reset trạng thái trước khi xóa
+                        user.tick = false;
+                        user.rabang = false;
+
+                        // Loại bỏ người dùng khỏi danh sách
+                        this.users = this.users.filter(user => user.USER_Id !== id);
+
+                        // Đồng bộ lại danh sách từ server nếu cần
+                        this.users = (await AuthenticationService.getUserRequest(this.userid)).data;
+
+                        console.log(`Removed user with USER_Id: ${id}`);
+                    }, 1500);
+                }, 1500);
+            } catch (error) {
+                console.error('Failed to remove user from the list:', error);
+            }
         }
     }, async mounted() {
         const token = localStorage.getItem("token");
@@ -149,7 +172,19 @@ export default {
         }
         this.user_personal = (await AuthenticationService.getUser(this.userid)).data;
         this.users = (await AuthenticationService.getUserRequest(this.userid)).data;
-    }
+        console.log(this.users)
+    }, props: {
+        acceptedId: {
+            type: String, // Kiểu dữ liệu id (String hoặc Number tùy thuộc vào API của bạn)
+            default: '',
+        },
+    }, watch: {
+        acceptedId(newId) {
+            if (newId) {
+                this.removeUserFromList(newId); // Gọi hàm xử lý
+            }
+        },
+    },
 }
 </script>
 <style scoped>

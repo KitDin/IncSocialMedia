@@ -201,6 +201,7 @@ export default {
                                 this.textComment = '';
                                 this.repliedUsername = '';
                                 this.replyComment = '';
+                                this.updatePost(this.postId.content.POST_Id)
                             }, this.getRandomNumber(1500, 2000));
                         }
                     }, this.getRandomNumber(500, 1000));
@@ -230,6 +231,7 @@ export default {
                                 this.textComment = '';
                                 this.repliedUsername = '';
                                 this.replyComment = '';
+                                this.updatePost(this.postId.content.POST_Id)
                             }, this.getRandomNumber(1500, 2000));
                         }
                     }, this.getRandomNumber(500, 1000));
@@ -259,20 +261,33 @@ export default {
                     this.fetchComments()
                 }
 
-                const [updatedPostData] = (await AuthenticationService.APost(post.content.POST_Id)).data;
-                const isCurrentUserLiked = updatedPostData.likes.includes(this.userid);
+                // const [updatedPostData] = (await AuthenticationService.APost(post.content.POST_Id)).data;
+                // const isCurrentUserLiked = updatedPostData.likes.includes(this.userid);
 
-                this.postId = {
-                    ...updatedPostData,
-                    isHeartFilled: isCurrentUserLiked,
-                    activeIndex: 0,
-                    scrollTimeout: null,
-                    showFullContent: this.isContentOverFifteenWords(updatedPostData.content.POST_Content)
-                }
-                this.$emit('updatePost', this.postId)
+                // this.postId = {
+                //     ...updatedPostData,
+                //     isHeartFilled: isCurrentUserLiked,
+                //     activeIndex: 0,
+                //     scrollTimeout: null,
+                //     showFullContent: this.isContentOverFifteenWords(updatedPostData.content.POST_Content)
+                // }
+                // this.$emit('updatePost', this.postId)
+                this.updatePost(post.content.POST_Id)
             } catch (error) { }
         },
+        async updatePost(POST_Id) {
+            const [updatedPostData] = (await AuthenticationService.APost(POST_Id)).data;
+            const isCurrentUserLiked = updatedPostData.likes.includes(this.userid);
 
+            this.postId = {
+                ...updatedPostData,
+                isHeartFilled: isCurrentUserLiked,
+                activeIndex: 0,
+                scrollTimeout: null,
+                showFullContent: this.isContentOverFifteenWords(updatedPostData.content.POST_Content)
+            }
+            this.$emit('updatePost', this.postId)
+        },
         isContentOverFifteenWords(content) {
             const words = content.split(' '); // Tách chuỗi thành mảng các từ
             return words.length > 15; // Kiểm tra xem mảng có nhiều hơn 15 từ hay không

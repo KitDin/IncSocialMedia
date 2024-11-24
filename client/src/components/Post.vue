@@ -160,12 +160,6 @@ export default {
             if (user && user.USER_AvatarURL) {
                 return require(`../../../server/public/uploads/avatar/${user.USER_AvatarURL}`);
             }
-        }, generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                const r = (Math.random() * 16) | 0;
-                const v = c === 'x' ? r : (r & 0x3) | 0x8;
-                return v.toString(16);
-            });
         },
         handleFileUpload() {
             const files = this.$refs.file.files;
@@ -195,9 +189,10 @@ export default {
                 this.isLoadingSubmit = true;
                 const formData = new FormData();
                 for (let i = 0; i < this.imageUrl.length; i++) {
-                    formData.append('file', this.imageUrl[i]);// File trực tiếp
+                    const file = this.dataURItoBlob(this.imageUrl[i]); // Chuyển base64 thành dạng Blob
+                    formData.append('file', file);
                 }
-                formData.append('POST_Id', this.generateUUID());
+                formData.append('POST_Id', this.uuid());
                 formData.append('USER_Id', this.userid);
                 formData.append('POST_Content', this.textarea.replace(/#\w+/g, '').trim());
                 formData.append('POST_AccessModifies', this.selected.value);
@@ -217,6 +212,22 @@ export default {
             } finally {
                 this.isLoadingSubmit = false;
             }
+        },
+        dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeString });
+        },
+        uuid() {
+            var temp_url = URL.createObjectURL(new Blob());
+            var uuid = temp_url.toString();
+            URL.revokeObjectURL(temp_url);
+            return uuid.substr(uuid.lastIndexOf('/') + 1);
         }, showPost() {
             this.$emit('closePost');
         }, showSelect() {

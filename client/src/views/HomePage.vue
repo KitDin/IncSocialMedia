@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="HomeContent" ref="scrollContainer" @scroll="handleScroll">
-            <NavMenu @makeNew="makeNewPost" />
+            <NavMenu @makeNew="makeNewPost" @updatePost="updatePost" @acceptFriend="acceptFriend" />
 
             <div class="HC-Post" v-for="post in posts" :key="post.content.POST_Id">
                 <div class="HC-Post-infor">
@@ -61,7 +61,7 @@
                 <input class="inputcomment" type="text" @pointerenter="" placeholder="Add a comment...">
             </div>
             <LoadingPage class="loading-page-fix" />
-            <NavRequestFriend></NavRequestFriend>
+            <NavRequestFriend :acceptedId="userIdAcceptTrueInRequest"></NavRequestFriend>
             <Footer> </Footer>
             <div v-if="showComment" @click="showCommentBar" class="Comment-prevent"></div>
             <CommentPost v-if="showComment" :postId="postId_Comment" :userid="userid" :loadImgPost="loadimgpost"
@@ -99,6 +99,7 @@ export default {
             fetchTimeout: null, // Dùng để quản lý thời gian chờ
             delayBetweenFetches: 2000,
             shouldFetchOnTimeout: false,
+            userIdAcceptTrueInRequest: ''
         }
     },
     components: {
@@ -109,6 +110,10 @@ export default {
     },
     props: ['id'],
     methods: {
+        acceptFriend(id) {
+            this.userIdAcceptTrueInRequest = id
+            console.log(">>>> home acceptFriend", id)
+        },
         handleScroll() {
             const container = this.$refs.scrollContainer;
             const scrollTop = container.scrollTop;

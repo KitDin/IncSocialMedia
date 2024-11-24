@@ -2,7 +2,7 @@
     <div class="profile-frame">
         <div class="" :class="mess ? 'scale-up-ver-top dataMess' : ''">{{ mess }}</div>
         <div v-if="showLoader" class="loader"></div>
-        <Nav @makeNewPost="makeNewPost"></Nav>
+        <Nav @makeNewPost="makeNewPost" @updatePost="updatePost" @acceptFriend="acceptFriend"></Nav>
         <div v-show="!showLoader" class="profile-contents">
             <!-- Người dùng khác -->
             <div v-if="!isCurrentUser">
@@ -148,6 +148,7 @@ export default {
     }, components: {
         Nav, Footer, CommentPost, Friends
     }, methods: {
+        acceptFriend(id) { this.numOfRequest--, this.numOfFriend++ },
         async makeNewPost() {
             console.log(">> make new in profile");
             // await this.fetchData()

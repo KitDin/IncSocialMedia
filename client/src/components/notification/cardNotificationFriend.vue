@@ -42,6 +42,7 @@ export default {
         userId: { type: String, required: true }
     },
     methods: {
+        test() { this.$emit('acceptFriend', this.notification.ref_id) },
         acceptFriend() {
             this.isLoading = true
             setTimeout(async () => {
@@ -53,6 +54,7 @@ export default {
                     if (add.success) {
                         this.notification.type = "friend_accept"
                         this.isLoading = false
+                        this.$emit('acceptFriend', this.notification.ref_id)
                     }
                     console.log(add)
                 } catch (error) {

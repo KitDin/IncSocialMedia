@@ -50,7 +50,7 @@
         <div class="prevent2" v-if="showNotification" @click="showpreventNotification()"></div>
 
         <Notifications v-if="showNotification" :class="!showNotification ? 'animationClosePar' : ''" :userId="userid"
-            @goPostDetail="goPostDetail" />
+            @goPostDetail="goPostDetail" @acceptFriend="acceptFriend" />
 
         <AlertComponents v-if="!isAlert" :message="alertMessage" />
 
@@ -60,7 +60,8 @@
 
         <Bur v-if="openPostDetail" @closeBur="closePostDetail" />
         <CommentPost v-if="openPostDetail" :postId="postOb" :userid="userid" :loadImgPost="loadimgpost"
-            :loadImgUser="loadimg" :timeRequest="timeRequest" :goProfile="goProfile" :postIdSubline="postId" />
+            :loadImgUser="loadimg" :timeRequest="timeRequest" :goProfile="goProfile" :postIdSubline="postId"
+            @updatePost="updatePost" />
 
     </div>
 </template>
@@ -108,6 +109,12 @@ export default {
             ],
         };
     }, methods: {
+        acceptFriend(id) {
+            this.$emit('acceptFriend', id)
+        },
+        updatePost(post) {
+            this.$emit('updatePost', post)
+        },
         async goPostDetail(id) {
             this.openPostDetail = true
             try {
@@ -126,10 +133,6 @@ export default {
                     scrollTimeout: null,
                     showFullContent: this.isContentOverFifteenWords(postContent),
                 };
-<<<<<<< HEAD
-=======
-                console.log(this.postOb)
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
             } catch (error) {
                 console.error('Error while fetching post data:', error);
             }
@@ -212,35 +215,6 @@ export default {
         , loadimgpost(img) {
             if (img) {
                 return require(`../../../server/public/uploads/post/${img}`);
-<<<<<<< HEAD
-=======
-            }
-        }, goProfile(userId) {
-            if (userId == this.userid) {
-                this.$router.push(`/profile`)
-            } else {
-                this.$router.push(`/profile/${userId}`)
-            }
-        }, timeRequest(POST_Time) {
-            const fixedDate = new Date(POST_Time);
-            const currentDate = new Date();
-            const timeDifference = currentDate - fixedDate;
-            const seconds = Math.floor(timeDifference / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-
-            if (seconds > 0 && seconds <= 60) {
-                return seconds + "s"
-            } else if (minutes > 0 && minutes <= 60) {
-                return minutes + "m"
-            } else if (hours > 0 && hours < 24) {
-                return hours + "h"
-            } else if (days > 0 && days < 7) {
-                return days + "d"
-            } else if (days > 3) {
-                return this.convertToCustomDate(fixedDate)
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
             }
         }, goProfile(userId) {
             if (userId == this.userid) {

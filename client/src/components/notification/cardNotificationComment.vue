@@ -1,9 +1,5 @@
 <template>
-<<<<<<< HEAD
     <div class="card-notification" v-if="notification" @click="getPostId(notification.post.POST_Id)">
-=======
-    <div class="card-notification" v-if="notification">
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
         <div class="notifi-avatar">
             <img @click="goProfile(notification.post)" :src="loadimg(notification.post)" alt="Avatar" />
         </div>
@@ -18,17 +14,10 @@
             </p>
             <p class="timestamp">{{ formatDate(notification.created_at) }}</p>
         </div>
-<<<<<<< HEAD
         <!-- <div class="notifi-post" v-if="notification && notification.post && notification.post.POST_ImgURL">
             <img @click="getPostId(notification.ref_id)" :src="loadpost(notification.post)" alt="Post Image"
                 class="post-image" />
         </div> -->
-=======
-        <div class="notifi-post" v-if="notification && notification.post && notification.post.POST_ImgURL">
-            <img @click="getPostId(notification.ref_id)" :src="loadpost(notification.post)" alt="Post Image"
-                class="post-image" />
-        </div>
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
     </div>
 </template>
 
@@ -41,10 +30,6 @@ export default {
     },
     methods: {
         getPostId(id) {
-<<<<<<< HEAD
-            console.log(id)
-=======
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
             this.$emit("goPostDetail", id)
         },
         goProfile(post) {
@@ -102,10 +87,7 @@ export default {
     margin-bottom: 4px;
     padding: 12px;
     border-radius: 8px;
-<<<<<<< HEAD
     cursor: pointer;
-=======
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
 }
 
 .card-notification:hover {

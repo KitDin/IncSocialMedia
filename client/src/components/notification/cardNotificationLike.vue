@@ -12,7 +12,8 @@
                     {{ user.USER_NickName }}<span v-if="index < notification.users.length - 1">,</span>
                 </strong>
                 <span>
-                    and {{ notification.stillUser }} others liked your post.
+                    {{ notification.users.length > 2 ? ` and ${notification.stillUser} others liked your post.` :
+                        ' liked your post.' }}
                 </span>
             </p>
             <p v-if="notification && notification.users && notification.users.length === 1">
@@ -30,7 +31,6 @@
 </template>
 
 <script>
-
 export default {
     props: {
         notification: { type: Object, required: true },
@@ -82,12 +82,8 @@ export default {
             }
         },
     }, mounted() {
-<<<<<<< HEAD
-=======
-        console.log(this.userId)
->>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
     }
-};
+}
 </script>
 
 <style scoped>
@@ -138,6 +134,7 @@ export default {
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
     transform: scale(1.05);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 10;
 }
 
 .notifi-content {
