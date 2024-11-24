@@ -34,8 +34,10 @@ export async function getInforOfReplyCommentById(replyId) {
 export async function getInfoCommentById(commentId) {
   try {
     const get = `select c.COMMENT_Content, c.POST_Id , ui.USER_NickName,
-    ui.USER_AvatarURL,UI.USER_Id from __comments c join __user_infor ui on 
-    c.user_id = ui.user_id where comment_id =? ;`;
+    ui.USER_AvatarURL, UI.USER_Id from __comments c 
+    join __user_infor ui on c.user_id = ui.user_id 
+    join __IMGs_POST ip on c.POST_Id = ip.POST_Id
+    where comment_id =? ;`;
     const [query] = await pool.query(get, commentId);
     return query.length > 0 ? query : "";
   } catch (error) {

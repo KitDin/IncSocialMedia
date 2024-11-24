@@ -135,19 +135,15 @@ export default {
         async toggleHeart(postAll) {
             if (this.posts) {
                 const postIndex = this.posts.findIndex(post => post.content.POST_Id === postAll.content.POST_Id);
-
                 if (postIndex > -1) {
                     this.$set(this.posts[postIndex], 'isHeartFilled', !this.posts[postIndex].isHeartFilled);
                 }
             }
-
             try {
                 if (postAll.isHeartFilled) {
                     const check = await AuthenticationService.like(this.userid, {
                         POST_Id: postAll.content.POST_Id
                     });
-                    console.log(check.data)
-
                     postAll.countLike++
 
                 } else {
@@ -155,23 +151,7 @@ export default {
                         POST_Id: postAll.content.POST_Id
                     });
                     postAll.countLike--
-
-                    console.log(check.data)
                 }
-                console.log(postAll)
-                // const updatedPosts = (await AuthenticationService.getposts()).data;
-                // if (this.posts) {
-                //     this.posts = updatedPosts.map(post => {
-                //         const isCurrentUserLiked = post.likes.includes(this.userid);
-                //         return {
-                //             ...post,
-                //             isHeartFilled: isCurrentUserLiked,
-                //             activeIndex: 0,
-                //             scrollTimeout: null,
-                //             showFullContent: this.isContentOverFifteenWords(post.content.POST_Content)
-                //         };
-                //     });
-                // }
             } catch (error) {
 
             }

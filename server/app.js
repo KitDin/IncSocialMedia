@@ -21,6 +21,6 @@ app.use("/api/users/", router);
 app.use("/moderate/text", routerModerate);
 app.use("/token", routerToken);
 socket_server(io(server));
-server.listen(process.env.POST, () => {
-  console.log(`Server is running on post ${process.env.POST}`);
+server.listen(process.env.PORT, () => {
+  console.log(`Server is running on post ${process.env.PORT}`);
 });

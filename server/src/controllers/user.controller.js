@@ -403,8 +403,8 @@ export const getNotificationsOfUser = async (req, res) => {
         if (noti.type === "like" && postsToFetch.has(noti.ref_id)) {
           noti.post = postsToFetch.get(noti.ref_id); // Gắn thông tin bài viết
           if (noti.users.length > 3) {
-            noti.stillUser = noti.users.length - 3;
-            noti.users = noti.users.slice(0, 3);
+            noti.stillUser = noti.users.length - 2;
+            noti.users = noti.users.slice(0, 2);
           }
         }
         if (

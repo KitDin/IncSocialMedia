@@ -15,7 +15,6 @@ export async function getAllIdUserRequestController(req, res) {
   const row = await getFullInforUserAllUser(id);
   res.json(row);
 }
-
 export async function acceptRequest(req, res) {
   try {
     const { USER_SENDERID, USER_RECID } = req.body;
