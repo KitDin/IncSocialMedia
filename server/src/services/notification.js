@@ -10,7 +10,7 @@ export const getNotificationsByUserId = async (userId) => {
                             ELSE NULL
                             END AS notification_group
                     FROM __NOTIFICATIONS
-                    WHERE USER_ID = 2
+                    WHERE USER_ID = ?
                         AND CREATED_AT >= DATE_SUB(NOW(), INTERVAL 5 MONTH) 
                         AND TYPE NOT IN ('message')
                     ORDER BY CREATED_AT DESC;`;

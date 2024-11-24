@@ -160,6 +160,12 @@ export default {
             if (user && user.USER_AvatarURL) {
                 return require(`../../../server/public/uploads/avatar/${user.USER_AvatarURL}`);
             }
+        }, generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                const r = (Math.random() * 16) | 0;
+                const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                return v.toString(16);
+            });
         },
         handleFileUpload() {
             const files = this.$refs.file.files;
@@ -189,10 +195,9 @@ export default {
                 this.isLoadingSubmit = true;
                 const formData = new FormData();
                 for (let i = 0; i < this.imageUrl.length; i++) {
-                    const file = this.dataURItoBlob(this.imageUrl[i]);
-                    formData.append('file', file);
+                    formData.append('file', this.imageUrl[i]);// File trực tiếp
                 }
-                formData.append('POST_Id', this.uuid());
+                formData.append('POST_Id', this.generateUUID());
                 formData.append('USER_Id', this.userid);
                 formData.append('POST_Content', this.textarea.replace(/#\w+/g, '').trim());
                 formData.append('POST_AccessModifies', this.selected.value);

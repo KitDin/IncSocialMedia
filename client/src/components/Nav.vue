@@ -47,11 +47,21 @@
         <Search v-if="is_expanded && showSearchBar" :isOpen="showSearchBar"
             :class="!showSearchBar ? 'animationClosePar' : ''" />
 
-        <Notifications v-if="showNotification" :class="!showNotification ? 'animationClosePar' : ''" />
+        <div class="prevent2" v-if="showNotification" @click="showpreventNotification()"></div>
+
+        <Notifications v-if="showNotification" :class="!showNotification ? 'animationClosePar' : ''" :userId="userid"
+            @goPostDetail="goPostDetail" />
 
         <AlertComponents v-if="!isAlert" :message="alertMessage" />
+
+        <!-- <div class="prevent2" v-if="showSearchBar" @click="showpreventsearch()"></div> -->
         <Bur v-if="showPostBar" @closeBur="closePost" />
         <Post class="componentPost" v-if="showPostBar" @closePost="makeNewPost" />
+
+        <Bur v-if="openPostDetail" @closeBur="closePostDetail" />
+        <CommentPost v-if="openPostDetail" :postId="postOb" :userid="userid" :loadImgPost="loadimgpost"
+            :loadImgUser="loadimg" :timeRequest="timeRequest" :goProfile="goProfile" :postIdSubline="postId" />
+
     </div>
 </template>
 
@@ -63,6 +73,7 @@ import Post from './Post.vue';
 import AlertComponents from './AlertComponents.vue';
 import Notifications from './notification/notifications.vue';
 import Bur from './Bur.vue'
+import CommentPost from './CommentPost.vue';
 
 export default {
     data() {
@@ -77,6 +88,9 @@ export default {
             alertMessage: '',
             notificationMessages: 0,
             showNotification: false,
+            postId: '',
+            postOb: [],
+            openPostDetail: false,
             links: [
                 { id: 1, icon: "bi bi-house-door", icon_fill: "bi bi-house-door-fill", text: "Home", link_to: "Home" },
                 { id: 2, icon: "bi bi-search-heart", icon_fill: "bi bi-search-heart-fill", text: "Search", link_to: null, status: false },
@@ -94,12 +108,40 @@ export default {
             ],
         };
     }, methods: {
+        async goPostDetail(id) {
+            this.openPostDetail = true
+            try {
+                this.postId = id
+                const postsData = (await AuthenticationService.APost(id)).data[0];
+                if (!postsData) {
+                    console.error('Error: postsData is undefined or null');
+                    return;
+                }
+                const isCurrentUserLiked = Array.isArray(postsData.likes) && postsData.likes.includes(this.userid);
+                const postContent = (postsData.content && postsData.content.POST_Content) || '';
+                this.postOb = {
+                    ...postsData,
+                    isHeartFilled: isCurrentUserLiked,
+                    activeIndex: 0,
+                    scrollTimeout: null,
+                    showFullContent: this.isContentOverFifteenWords(postContent),
+                };
+            } catch (error) {
+                console.error('Error while fetching post data:', error);
+            }
+        }, isContentOverFifteenWords(content) {
+            const words = content.split(' '); // Tách chuỗi thành mảng các từ
+            return words.length > 15; // Kiểm tra xem mảng có nhiều hơn 15 từ hay không
+        },
+        closePostDetail() {
+            this.openPostDetail = false;
+            this.links[3].status = !this.links[3].status
+        },
         errorPost(err) {
             this.alertMessage = err
             this.isAlert = false
         }, async makeNewPost() {
             console.log(">>> make new in nav");
-            // this.$emit('makeNew')
         },
         closePost() {
             this.showPostBar = false;
@@ -123,7 +165,6 @@ export default {
                 link.status = !link.status;
                 this.showNotification = link.status
                 this.is_expanded = link.status;
-
             } else if (link.id === 5) {
                 this.showPostBar = !this.showPostBar
                 link.status = !link.status
@@ -157,11 +198,54 @@ export default {
             }
         }, showpreventsearch() {
             this.showSearchBar = false
-            if (!this.is_expanded) {
-                this.is_expanded = !this.is_expanded
-            } else if (this.is_expanded) {
-                this.is_expanded = !this.is_expanded
+            this.links[1].status = !this.links[1].status
+            this.is_expanded = !this.is_expanded
+        }, showpreventNotification() {
+            this.showNotification = false
+            this.links[3].status = !this.links[3].status
+            this.is_expanded = !this.is_expanded
+        }
+        , loadimgpost(img) {
+            if (img) {
+                return require(`../../../server/public/uploads/post/${img}`);
             }
+        }, goProfile(userId) {
+            if (userId == this.userid) {
+                this.$router.push(`/profile`)
+            } else {
+                this.$router.push(`/profile/${userId}`)
+            }
+        }, timeRequest(POST_Time) {
+            const fixedDate = new Date(POST_Time);
+            const currentDate = new Date();
+            const timeDifference = currentDate - fixedDate;
+            const seconds = Math.floor(timeDifference / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (seconds > 0 && seconds <= 60) {
+                return seconds + "s"
+            } else if (minutes > 0 && minutes <= 60) {
+                return minutes + "m"
+            } else if (hours > 0 && hours < 24) {
+                return hours + "h"
+            } else if (days > 0 && days < 7) {
+                return days + "d"
+            } else if (days > 3) {
+                return this.convertToCustomDate(fixedDate)
+            }
+        }, convertToCustomDate(inputDate) {
+            const months = [
+                "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+                "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+            ];
+
+            const date = new Date(inputDate);
+            const month = months[date.getUTCMonth()];
+            const day = date.getUTCDate();
+
+            return `${month} ${day}`;
         }
     }, async mounted() {
         const token = localStorage.getItem("token");
@@ -180,11 +264,12 @@ export default {
             this.$router.push("/");
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data;
-        setInterval(async () => {
-            this.notificationMessages = (await AuthenticationService.getNumberNotification(this.userid)).data
-        }, 1000)
+        // setInterval(async () => {
+        this.notificationMessages = (await AuthenticationService.getNumberNotification(this.userid)).data
+        // }, 1000)
+
     },
-    components: { RouterLink, Search, Post, AlertComponents, Bur, Notifications },
+    components: { RouterLink, Search, Post, AlertComponents, Bur, Notifications, CommentPost },
 }
 </script>
 

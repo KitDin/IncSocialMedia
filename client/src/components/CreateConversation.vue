@@ -91,7 +91,6 @@ export default {
                 this.$emit('createNewConversation', conId, userReceiv)
                 this.$emit('freshData')
                 this.$emit('close')
-
                 this.usersChoose = []
                 this.searchQuery = ''
                 this.searchResults = []

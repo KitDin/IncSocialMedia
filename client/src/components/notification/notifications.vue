@@ -1,23 +1,66 @@
 <template>
     <div class="Notification-Frame">
         <h2>Notifications</h2>
-        <div class="notifications-new">
-            <CardNotification />
-        </div>
+        <div class="notifications">
+            <div class="notification-content" v-show="notifications && notifications.new.length > 0">
+                <h3 class="notifications-time">New</h3>
+                <div class="notifications-new" v-for="(notification, index) in notifications.new" :key="index + 1">
+                    <CardNotificationLike v-if="notification && notification.type === 'like'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationComment v-if="notification && notification.type === 'comment'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationRequestFriend
+                        v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
+                        :notification="notification" :userId="userId" />
+                </div>
+            </div>
 
-        <div class="notification-this-month">
-            <CardNotification />
-        </div>
 
-        <div class="notification-earlier">
-            <CardNotification />
+            <div class="notification-content" v-show="notifications && notifications.thisMonth.length > 0">
+                <h3 class="notifications-time">This month</h3>
+                <div class="notification-this-month" v-for="(notification, index) in notifications.thisMonth"
+                    :key="index">
+                    <CardNotificationLike v-if="notification && notification.type === 'like'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationComment v-if="notification && notification.type === 'comment'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationRequestFriend
+                        v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
+                        :notification="notification" :userId="userId" />
+                </div>
+            </div>
+
+
+            <div class="notification-content" v-show="notifications && notifications.earlier.length > 0">
+                <h3 class="notifications-time">Earlier</h3>
+                <div class="notification-earlier" v-for="(notification, index) in notifications.earlier">
+                    <CardNotificationLike v-if="notification && notification.type === 'like'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationComment v-if="notification && notification.type === 'comment'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
+                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationRequestFriend
+                        v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
+                        :notification="notification" :userId="userId" />
+                </div>
+            </div>
+
         </div>
     </div>
 </template>
 
 <script>
 import AuthenticationService from '../../services/AuthenticationService';
-import CardNotification from './cardNotification.vue';
+import CardNotificationLike from './cardNotificationLike.vue';
+import CardNotificationComment from './cardNotificationComment.vue';
+import CardNotificationReplyComment from './cardNotificationReplyComment.vue';
+import CardNotificationRequestFriend from './cardNotificationFriend.vue';
+
 export default {
     data() {
         return {
@@ -25,31 +68,27 @@ export default {
         }
     },
     methods: {
-
+        goPostDetail(id) {
+            this.$emit('goPostDetail', id)
+        },
+        async fetchNotifications(id) {
+            const data = (await AuthenticationService.getAllNotification(id)).data
+            if (data.status) {
+                this.notifications = data.notifications
+            } else {
+                console.error(">>> Not notifications")
+            }
+            console.log(this.notifications)
+        }
     },
     async mounted() {
-        const test = await AuthenticationService.getAllNotification(2)
-        console.log(test)
+        this.fetchNotifications(this.userId)
     }
     , props: {
-
+        userId: { type: String }
     }, components: {
-        CardNotification
+        CardNotificationLike, CardNotificationComment, CardNotificationReplyComment, CardNotificationRequestFriend
     }
-    // notifications lấy thông báo trong 5 tháng.
-    // endpoint notifications chia làm 3 key : 
-    // new - trong ngày, thisMonth - trong thánh, earlier - là trường hợp khác của 2 trường hợp khác và dưới 5 tháng
-    //
-    // ví dụ 1 post mình đăng , nếu cùng là type like người khác đã tương tác với mình gôm thành 1 nhóm
-    // lúc này thông báo sẽ là - a, b, c và [số người] đã thích bài đăng của bạn.
-    // cùng bài đăng đó nhưng thuộc type comment hoặc reply_comment sẽ hiện lên - a đã bình luận "nội dung bình luận" - b đã trả lời bình luận của bạn.
-
-    // yêu cầu kết bạn ....
-
-    // hình ảnh,post id của bài đăng của mình mà người dùng đã tương tác, 
-    // tên và avatar,userID của người dùng đã tương tác vào bài đăng của mình.
-    // hình ảnh,post id của bài đăng đã được reply bởi người dùng khác.
-    // tên và avatar,userID của người dùng đã reply mình.
 }
 
 </script>
@@ -64,7 +103,7 @@ export default {
     background-color: white;
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
-    padding: 32px 24px 0 24px;
+    padding: 32px 0 0 24px;
     z-index: 999;
     box-shadow: rgba(100, 100, 111, 0.2) 5px 7px 12px 0px;
     -webkit-animation: scale-in-hor-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
@@ -75,6 +114,12 @@ export default {
     margin: 0;
     font-size: 24px;
     padding-bottom: 36px;
+}
+
+.Notification-Frame .notifications {
+    padding-right: 8px;
+    height: 600px;
+    overflow-y: scroll;
 }
 
 @-webkit-keyframes scale-in-hor-left {

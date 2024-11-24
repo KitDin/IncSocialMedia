@@ -32,7 +32,7 @@
                                     <div class="user-comment-content">
                                         <span @click="goProfile(postId.content.USER_Id)" class="user-name">{{
                                             postId.content.USER_NickName
-                                            }}</span>
+                                        }}</span>
                                         <span class="content-comment">{{ postId.content.POST_Content }}</span>
                                         <span class="hashtags" v-for="hashtag in postId.hashtag"
                                             :key="hashtag.hashtag_id">
@@ -55,7 +55,7 @@
                                     <div class="user-comment-content">
                                         <span @click="goProfile(comment.comment.USER_Id)" class="user-name">{{
                                             comment.comment.USER_NickName
-                                            }}</span>
+                                        }}</span>
                                         <span class="content-comment">{{ comment.comment.comment_Content }}</span>
                                     </div>
                                     <div class="user-comment-order">
@@ -78,7 +78,7 @@
                                                 <div class="user-comment-content">
                                                     <span @click="goProfile(replys.USER_Id)" class="user-name">{{
                                                         replys.USER_NickName
-                                                        }}</span>
+                                                    }}</span>
                                                     <span class="reple-to">@{{ replys.reply_to.USER_NickName }}</span>
                                                     <span class="content-comment">{{
                                                         replys.CommentReply_Content }}</span>
@@ -303,6 +303,14 @@ export default {
     }, watch: {
         textComment(value) {
             this.char = value.length;
+        }, postId: {
+            handler(newValue) {
+                if (newValue && newValue.content && newValue.content.POST_Id) {
+                    this.fetchComments();
+                }
+            },
+            immediate: true, // Kích hoạt khi component được mount
+            deep: true, // Theo dõi thay đổi sâu trong object
         },
     }
 }

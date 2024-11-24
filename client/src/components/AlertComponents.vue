@@ -34,7 +34,7 @@ export default {
         deleteAlert() {
             this.$emit(this.action, this.dataAlert)
         }, acceptAlert() {
-            this.$emit(`${this.action}`, this.dataAlert)
+            this.$emit(this.action, this.dataAlert)
         }, closeAlert() {
             this.$emit('closeAlert')
         }

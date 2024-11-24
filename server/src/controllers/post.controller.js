@@ -19,6 +19,7 @@ export async function postStatus(req, res) {
   const files = req.files.map((file) => file.filename);
   const { POST_Id, USER_Id, POST_Content, POST_AccessModifies, HashTags } =
     req.body;
+
   try {
     await postStatusContent(
       POST_Id,

@@ -307,7 +307,7 @@ export const getNotificationsOfUser = async (req, res) => {
   try {
     const { id } = req.params;
     const notifications = await getNotificationsByUserId(id);
-
+    console.log(id);
     // Nhóm thông báo
     const groupedNotifications = {
       new: [],
@@ -319,7 +319,6 @@ export const getNotificationsOfUser = async (req, res) => {
     const postsToFetch = new Map();
     const replyCommentToFetch = new Map();
     const commentToFetch = new Map();
-    const userToFetch = new Map();
 
     for (const noti of notifications) {
       const { TYPE, REF_ID, CONTENT, CREATED_AT, STATUS, notification_group } =
@@ -366,12 +365,14 @@ export const getNotificationsOfUser = async (req, res) => {
           status: STATUS,
         });
       } else {
+        const user = await getUserByIdShortInfo(REF_ID);
         group.push({
           type: TYPE,
           ref_id: REF_ID,
           content: CONTENT,
           created_at: CREATED_AT,
           status: STATUS,
+          user: user[0],
         });
       }
     }
@@ -403,8 +404,8 @@ export const getNotificationsOfUser = async (req, res) => {
         if (noti.type === "like" && postsToFetch.has(noti.ref_id)) {
           noti.post = postsToFetch.get(noti.ref_id); // Gắn thông tin bài viết
           if (noti.users.length > 3) {
-            noti.stillUser = noti.users.length - 3;
-            noti.users = noti.users.slice(0, 3);
+            noti.stillUser = noti.users.length - 2;
+            noti.users = noti.users.slice(0, 2);
           }
         }
         if (
