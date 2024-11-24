@@ -82,6 +82,10 @@ export default {
             }
         },
     }, mounted() {
+<<<<<<< HEAD
+=======
+        console.log(this.userId)
+>>>>>>> 511580325b56af60aa016b8a1c492ad14318d595
     }
 };
 </script>
