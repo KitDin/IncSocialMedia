@@ -16,6 +16,7 @@
                     }">
                     <div class="circle-notification" v-if="link.id === 3 && notificationMessages > 0">{{
                         notificationMessages }}</div>
+                    <div class="circle-notification notification" v-if="link.id === 4 && notificationAll > 0"></div>
                     <p class="text" v-if="!is_expanded">{{ link.text }}</p>
                 </li>
             </ul>
@@ -88,6 +89,7 @@ export default {
             isAlert: true,
             alertMessage: '',
             notificationMessages: 0,
+            notificationAll: '',
             showNotification: false,
             postId: '',
             postOb: [],
@@ -154,7 +156,7 @@ export default {
             this.showPostBar = false;
             this.links[4].status = !this.links[4].status
         },
-        handleItemClick(link) {
+        async handleItemClick(link) {
             if (link.id === 2) {
                 if (this.links[3].status) {
                     this.links[3].status = false;
@@ -170,12 +172,23 @@ export default {
                     this.showSearchBar = false;
                 }
                 link.status = !link.status;
+                const check = (await AuthenticationService.updateAllNotification(this.userid, 'read', 'unread')).data
+                if (check.status)
+                    this.notificationAll = 0
                 this.showNotification = link.status
                 this.is_expanded = link.status;
             } else if (link.id === 5) {
+                this.links[3].status = false;
+                this.links[1].status = false;
                 this.showPostBar = !this.showPostBar
                 link.status = !link.status
             } else {
+                this.links[3].status = false;
+                this.links[1].status = false;
+                this.showNotification = false
+                this.showSearchBar = false;
+                this.is_expanded = false;
+
                 this.$router.push({
                     name: link.link_to,
                     // params: { id: this.userid }
@@ -183,6 +196,7 @@ export default {
                     if (
                         err.name !== 'NavigationDuplicated' &&
                         !err.message.includes('Avoided redundant navigation to current location')
+
                     ) {
                         logError(err);
                     }
@@ -271,9 +285,12 @@ export default {
             this.$router.push("/");
         }
         this.user = (await AuthenticationService.getUser(this.userid)).data;
-        // setInterval(async () => {
-        this.notificationMessages = (await AuthenticationService.getNumberNotification(this.userid)).data
-        // }, 1000)
+        this.notificationMessages = ((await AuthenticationService.getNumberNotification(this.userid)).data) || 0
+        this.notificationAll = (await AuthenticationService.getQuantifierNotification(this.userid)).data.quantifier
+        setInterval(async () => {
+            this.notificationMessages = ((await AuthenticationService.getNumberNotification(this.userid)).data) || 0
+            this.notificationAll = (await AuthenticationService.getQuantifierNotification(this.userid)).data.quantifier
+        }, 5000)
 
     },
     components: { RouterLink, Search, Post, AlertComponents, Bur, Notifications, CommentPost },
@@ -765,7 +782,12 @@ ul li:hover {
     transform: translateY(-95%);
 }
 
-
+.navmenu .navli .circle-notification.notification {
+    height: 8px;
+    width: 8px;
+    top: 33%;
+    left: 30px;
+}
 
 /* .componentPost {
     position: fixed;

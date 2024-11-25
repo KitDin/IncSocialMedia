@@ -11,7 +11,8 @@
                             </p>
                         </div>
                         <div class="mb-3">
-                            <a class="btn btn-primary d-block bg-gradient" href="#"><i class="fab fa-facebook"></i> Log in
+                            <a class="btn btn-primary d-block bg-gradient" href="#"><i class="fab fa-facebook"></i> Log
+                                in
                                 with facebook</a>
                             <p class="my-3 text-center or">
                                 - OR -
@@ -38,7 +39,8 @@
                         <div v-html="error" class="error"></div>
 
                         <div class="mb-2">
-                            <button @click.prevent @click="register" class="btn btn-primary fw-bold w-100 bg-gradient">Sign
+                            <button @click.prevent @click="register"
+                                class="btn btn-primary fw-bold w-100 bg-gradient">Sign
                                 Up</button>
                         </div>
                         <div class="small text-center">
@@ -100,9 +102,8 @@ export default {
             }
             return result;
         }
-        const randomLenght = Math.floor(Math.random() * 30)
-        this.id = makeRandomId(randomLenght),
-            console.log(this.id);
+        const randomLenght = Math.floor(Math.random() * 30);
+        this.id = makeRandomId(randomLenght);
     }
 }
 </script>

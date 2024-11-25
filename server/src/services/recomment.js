@@ -157,6 +157,9 @@ ORDER BY
 export async function recommendPostsForUser(userId) {
   // Lấy các hashtag gợi ý từ recommendHashtagsForUser
   const interactions = await getUserHashtagInteractions();
+
+  if (!interactions || !Array.isArray(interactions)) return [];
+
   const { userHashtagMatrix, users } = buildUserHashtagMatrix(interactions);
   const similarities = calculateUserSimilarities(userHashtagMatrix, users);
   const recommendedHashtags = recommendHashtagsForUser(
@@ -236,11 +239,11 @@ async function getUserInteractedPosts(userId) {
 }
 
 export async function getCombinedRecommendations(userId) {
-  const hashtagPosts = await recommendPostsForUser(userId); // Từ hashtag
-  const friendPosts = await getPostsFromFriends(userId); // Từ bạn bè
-  const trendingPosts = await getTrendingPosts(userId); // Từ bài viết phổ biến
+  const hashtagPosts = (await recommendPostsForUser(userId)) || []; // Từ hashtag
+  const friendPosts = (await getPostsFromFriends(userId)) || []; // Từ bạn bè
+  const trendingPosts = (await getTrendingPosts(userId)) || []; // Từ bài viết phổ biến
 
-  const interactedPosts = await getUserInteractedPosts(userId);
+  const interactedPosts = (await getUserInteractedPosts(userId)) || [];
 
   // Kết hợp các nguồn bài đăng
   const combinedPosts = [

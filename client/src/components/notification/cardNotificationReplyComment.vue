@@ -1,15 +1,17 @@
 <template>
     <div class="card-notification" v-if="notification" @click="getPostId(notification.post.POST_Id)">
         <div class="notifi-avatar">
-            <img @click="goProfile(notification.post)" :src="loadimg(notification.post)" alt="Avatar" />
+            <img @click.stop="goProfile(notification.post)" :src="loadimg(notification.post)" alt="Avatar" />
         </div>
         <div class="notifi-content">
             <p>
-                <strong @click="goProfile(notification.post)" class="user-nickname">
+                <strong @click.stop="goProfile(notification.post)" class="user-nickname">
                     {{ notification.post.USER_NickName }}
                 </strong>
                 <span>
-                    replied to your comment: "{{ notification.post.CommentReply_Content }}"
+                    replied to your comment: "{{ notification.post.CommentReply_Content.split(' ').slice(0, 8).join(" ")
+                        + " ... "
+                    }}"
                 </span>
             </p>
             <p class="timestamp">{{ formatDate(notification.created_at) }}</p>
@@ -33,10 +35,10 @@ export default {
             this.$emit("goPostDetail", id)
         },
         goProfile(post) {
-            if (post.userId == this.userId) {
+            if (post.USER_Id == this.userId) {
                 this.$router.push(`/profile`)
             } else {
-                this.$router.push(`/profile/${post.userId}`)
+                this.$router.push(`/profile/${post.USER_Id}`)
             }
         },
         loadimg(post) {

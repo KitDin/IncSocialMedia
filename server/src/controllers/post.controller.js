@@ -11,6 +11,7 @@ import {
   getReplyComment,
   postReplyComments,
   postHashtag,
+  getCommentPostById,
 } from "../services/post.js";
 
 import { getUserById } from "../services/user.js";
@@ -102,6 +103,7 @@ export async function unlikePost(req, res) {
     const id = req.user.USER_Id;
     const { POST_Id } = req.body;
     const check = await unlike(id, POST_Id);
+    console.log(check);
     if (check) {
       return res.json({
         status: true,
@@ -149,33 +151,47 @@ export async function postComment(req, res) {
   }
 }
 
+// export async function getComments(req, res) {
+//   try {
+//     const POST_id = req.params.idpost;
+//     const comments = await getCommentInAPost(POST_id);
+//     const fullComment = [];
+
+//     for (let commentIndex = 0; commentIndex < comments.length; commentIndex++) {
+//       const comment = comments[commentIndex];
+//       const reply = await getReplyComment(comment.POST_id, comment.comment_id);
+//       const reply_to_full = [];
+
+//       for (let replyIndex = 0; replyIndex < reply.length; replyIndex++) {
+//         const reply_to = reply[replyIndex];
+//         const reply_to_user = await getUserById(reply_to.USER_id_reply_to);
+//         const reply_to_InforUser = {
+//           ...reply_to,
+//           reply_to: reply_to_user,
+//         };
+//         reply_to_full.push(reply_to_InforUser);
+//       }
+
+//       const commentWithReply = {
+//         comment: comment,
+//         reply: reply_to_full,
+//         isShowView: false,
+//       };
+//       fullComment.push(commentWithReply);
+//     }
+//     res.json(fullComment);
+//   } catch (error) {
+//     console.error("Error getting comments:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// }
+
 export async function getComments(req, res) {
   try {
     const POST_id = req.params.idpost;
-    const comments = await getCommentInAPost(POST_id);
-    const fullComment = [];
 
-    for (let commentIndex = 0; commentIndex < comments.length; commentIndex++) {
-      const comment = comments[commentIndex];
-      const reply = await getReplyComment(comment.POST_id, comment.comment_id);
-      const reply_to_full = [];
+    const fullComment = await getCommentPostById(POST_id);
 
-      for (let replyIndex = 0; replyIndex < reply.length; replyIndex++) {
-        const reply_to = reply[replyIndex];
-        const reply_to_user = await getUserById(reply_to.USER_id_reply_to);
-        const reply_to_InforUser = {
-          ...reply_to,
-          reply_to: reply_to_user,
-        };
-        reply_to_full.push(reply_to_InforUser);
-      }
-
-      const commentWithReply = {
-        comment: comment,
-        reply: reply_to_full,
-      };
-      fullComment.push(commentWithReply);
-    }
     res.json(fullComment);
   } catch (error) {
     console.error("Error getting comments:", error);

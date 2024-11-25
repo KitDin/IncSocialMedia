@@ -22,3 +22,34 @@ export const getNotificationsByUserId = async (userId) => {
     return false;
   }
 };
+
+export const getNumberNotificationUnread = async (userId) => {
+  try {
+    const getNum = `select count(*) as quantifier from __NOTIFICATIONS where user_id=? and status='unread' and type not in ("message");`;
+
+    const [query] = await pool.query(getNum, userId);
+    return query;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+export const updateNotification = async (
+  userId,
+  statusUpdate = "read",
+  statusCurrent = "unread"
+) => {
+  try {
+    const sqlUpdate = `update __NOTIFICATIONS set status = ? where user_id = ? and status = ? and type not in ('message');`;
+    const [query] = await pool.query(sqlUpdate, [
+      statusUpdate,
+      userId,
+      statusCurrent,
+    ]);
+    return query;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};

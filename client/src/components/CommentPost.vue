@@ -59,7 +59,7 @@
                                         <span class="content-comment">{{ comment.comment.comment_Content }}</span>
                                     </div>
                                     <div class="user-comment-order">
-                                        <p class="time">{{ timeRequest(comment.comment.comment_Time) }}</p>
+                                        <p class="time">{{ timeRequest(comment.comment.comment_Time) || 'now' }}</p>
                                         <label for="textComment" class="btn-reply"
                                             @click="reply(comment, repli)">Reply</label>
                                     </div>
@@ -84,7 +84,8 @@
                                                         replys.CommentReply_Content }}</span>
                                                 </div>
                                                 <div class="user-comment-order">
-                                                    <p class="time">{{ timeRequest(replys.CommentReply_Time) }}</p>
+                                                    <p class="time">{{ timeRequest(replys.CommentReply_Time) || 'now' }}
+                                                    </p>
                                                     <label for="textComment" class="btn-reply"
                                                         @click="reply(comment, replys)">Reply</label>
                                                 </div>
@@ -132,7 +133,7 @@
 
 <script>
 import AuthenticationService from "../services/AuthenticationService"
-
+import socket from "../services/Socket.io";
 
 export default {
     data() {
@@ -169,79 +170,133 @@ export default {
         },
         showView(comment) {
             comment.isShowView = !comment.isShowView
-        }, async postComment() {
+        },
+        //  async postComment() {
+        //     try {
+        //         if (this.textComment.startsWith('@')) {
+        //             this.showLoader = true;
+        //             const commentWithoutUsername = this.textComment.replace(/^@\S+\s/, '');
+        //             setTimeout(async () => {
+        //                 this.showLoader = false;
+        //                 this.showIcon = true;
+        //                 const response = await AuthenticationService.replyComment(this.postId.content.POST_Id, {
+        //                     "POST_id": this.postId.content.POST_Id,
+        //                     "replyComment": this.replyComment,
+        //                     "USER_id": this.userid,
+        //                     "USER_id_reply_to": this.repliedUsername,
+        //                     "CommentReply_id": this.makeRandomId(Math.floor(Math.random() * 30)),
+        //                     "CommentReply_Content": commentWithoutUsername
+        //                 })
+
+        //                 this.status = response.data.status;
+
+        //                 if (this.status = 'success') {
+        //                     setTimeout(async () => {
+        //                         this.showIcon = false
+        //                         const commentsData = (await AuthenticationService.getComment(this.postId.content.POST_Id)).data;
+        //                         this.comments = commentsData.map(comment => {
+        //                             return {
+        //                                 ...comment,
+        //                                 isShowView: true,
+        //                             }
+        //                         })
+        //                         this.textComment = '';
+        //                         this.repliedUsername = '';
+        //                         this.replyComment = '';
+        //                         this.updatePost(this.postId.content.POST_Id)
+        //                     }, this.getRandomNumber(1500, 2000));
+        //                 }
+        //             }, this.getRandomNumber(500, 1000));
+        //         } else {
+        //             this.showLoader = true;
+        //             setTimeout(async () => {
+        //                 this.showLoader = false;
+        //                 this.showIcon = true;
+        //                 const response = await AuthenticationService.postComment(this.postId.content.POST_Id, {
+        //                     "comment_id": this.makeRandomId(Math.floor(Math.random() * 30)),
+        //                     "POST_id": this.postId.content.POST_Id,
+        //                     "USER_id": this.userid,
+        //                     "comment_Content": this.textComment,
+        //                 })
+        //                 this.status = response.data.status;
+
+        //                 if (this.status === 'success') {
+        //                     setTimeout(async () => {
+        //                         this.showIcon = false
+        //                         const commentsData = (await AuthenticationService.getComment(this.postId.content.POST_Id)).data;
+        //                         this.comments = commentsData
+        //                         // .map(comment => {
+        //                         //     return {
+        //                         //         ...comment,
+        //                         //         isShowView: false,
+        //                         //     }
+        //                         // })
+        //                         this.textComment = '';
+        //                         this.repliedUsername = '';
+        //                         this.replyComment = '';
+        //                         this.updatePost(this.postId.content.POST_Id)
+        //                     }, this.getRandomNumber(1500, 2000));
+        //                 }
+        //             }, this.getRandomNumber(500, 1000));
+        //         }
+        //     } catch (error) {
+        //         console.error("Error posting comment:", error);
+        //     }
+        // }
+        async postComment() {
             try {
-                if (this.textComment.startsWith('@')) {
-                    this.showLoader = true;
-                    const commentWithoutUsername = this.textComment.replace(/^@\S+\s/, '');
-                    setTimeout(async () => {
-                        this.showLoader = false;
-                        this.showIcon = true;
-                        const response = await AuthenticationService.replyComment(this.postId.content.POST_Id, {
-                            "POST_id": this.postId.content.POST_Id,
-                            "replyComment": this.replyComment,
-                            "USER_id": this.userid,
-                            "USER_id_reply_to": this.repliedUsername,
-                            "CommentReply_id": this.makeRandomId(Math.floor(Math.random() * 30)),
-                            "CommentReply_Content": commentWithoutUsername
-                        })
+                this.showLoader = true;
+                let check = false
+                setTimeout(() => {
+                    this.showLoader = false;
+                    this.showIcon = true;
+                    if (this.textComment.startsWith('@')) {
+                        const commentWithoutUsername = this.textComment.replace(/^@\S+\s/, '');
 
-                        this.status = response.data.status;
-
-                        if (this.status = 'success') {
-                            setTimeout(async () => {
-                                this.showIcon = false
-                                const commentsData = (await AuthenticationService.getComment(this.postId.content.POST_Id)).data;
-                                this.comments = commentsData.map(comment => {
-                                    return {
-                                        ...comment,
-                                        isShowView: true,
-                                    }
-                                })
-                                this.textComment = '';
-                                this.repliedUsername = '';
-                                this.replyComment = '';
-                                this.updatePost(this.postId.content.POST_Id)
-                            }, this.getRandomNumber(1500, 2000));
-                        }
-                    }, this.getRandomNumber(500, 1000));
-                } else {
-                    this.showLoader = true;
-                    setTimeout(async () => {
-                        this.showLoader = false;
-                        this.showIcon = true;
-                        const response = await AuthenticationService.postComment(this.postId.content.POST_Id, {
-                            "comment_id": this.makeRandomId(Math.floor(Math.random() * 30)),
-                            "POST_id": this.postId.content.POST_Id,
-                            "USER_id": this.userid,
-                            "comment_Content": this.textComment,
-                        })
-                        this.status = response.data.status;
-
-                        if (this.status === 'success') {
-                            setTimeout(async () => {
-                                this.showIcon = false
-                                const commentsData = (await AuthenticationService.getComment(this.postId.content.POST_Id)).data;
-                                this.comments = commentsData.map(comment => {
-                                    return {
-                                        ...comment,
-                                        isShowView: false,
-                                    }
-                                })
-                                this.textComment = '';
-                                this.repliedUsername = '';
-                                this.replyComment = '';
-                                this.updatePost(this.postId.content.POST_Id)
-                            }, this.getRandomNumber(1500, 2000));
-                        }
-                    }, this.getRandomNumber(500, 1000));
-                }
+                        setTimeout(() => {
+                            this.showIcon = false;
+                            check = true
+                            socket.emit('submitComment', {
+                                POST_id: this.postId.content.POST_Id,
+                                replyComment: this.replyComment, // Đánh dấu đây là reply
+                                USER_id: this.userid,
+                                USER_id_reply_to: this.repliedUsername, // Tên user được reply
+                                CommentReply_id: this.makeRandomId(Math.floor(Math.random() * 30)),
+                                CommentReply_Content: commentWithoutUsername
+                            });
+                        }, this.getRandomNumber(1500, 2000))
+                        // Emit sự kiện submitComment cho reply comment
 
 
+                    } else {
+                        setTimeout(() => {
+                            this.showIcon = false;
+                            this.replyComment = ''
+                            check = true
+                            socket.emit('submitComment', {
+                                POST_id: this.postId.content.POST_Id,
+                                comment_id: this.makeRandomId(Math.floor(Math.random() * 30)),
+                                comment_Content: this.textComment,
+                                USER_id: this.userid
+                            });
+                        }, this.getRandomNumber(1500, 2000))
+                    }
+                }, this.getRandomNumber(1500, 2000))
+
+                // Nghe sự kiện updateComments để cập nhật danh sách comment
+                // if (check)
+                // socket.on('updateComments', (data) => {
+                //     console.log('Updated comments and replies received:', data);
+                //     this.comments = data; // Gán dữ liệu nhận được từ server vào danh sách comments
+                //     this.textComment = ''; // Reset input comment
+                //     this.repliedUsername = ''; // Reset username được reply
+                //     this.replyComment = ''; // Reset trạng thái reply
+                // });
             } catch (error) {
-                console.error("Error posting comment:", error);
+                console.error('Error posting comment:', error);
             }
-        }, getRandomNumber(min, max) {
+        }
+        , getRandomNumber(min, max) {
             return Math.round(Math.random() * (max - min) + min);
         }, async like(post) {
             post.isHeartFilled = !post.isHeartFilled
@@ -260,18 +315,6 @@ export default {
                     });
                     this.fetchComments()
                 }
-
-                // const [updatedPostData] = (await AuthenticationService.APost(post.content.POST_Id)).data;
-                // const isCurrentUserLiked = updatedPostData.likes.includes(this.userid);
-
-                // this.postId = {
-                //     ...updatedPostData,
-                //     isHeartFilled: isCurrentUserLiked,
-                //     activeIndex: 0,
-                //     scrollTimeout: null,
-                //     showFullContent: this.isContentOverFifteenWords(updatedPostData.content.POST_Content)
-                // }
-                // this.$emit('updatePost', this.postId)
                 this.updatePost(post.content.POST_Id)
             } catch (error) { }
         },
@@ -296,16 +339,13 @@ export default {
         async fetchComments() {
             try {
                 const commentsData = (await AuthenticationService.getComment(this.postId.content.POST_Id)).data;
-                this.comments = commentsData.map(comment => {
-                    return {
-                        ...comment,
-                        isShowView: false, // Add your property or any transformations you need
-                    };
-                });
+                this.comments = commentsData
             } catch (error) {
                 console.error("Error fetching comments:", error);
             }
-        },
+        }, forceUpdate() {
+            this.$forceUpdate(); // Buộc Vue render lại component
+        }
     }, props: {
         userid: String,
         postId: Object,
@@ -314,20 +354,45 @@ export default {
         timeRequest: Function,
         goProfile: Function
     }, async mounted() {
-        this.fetchComments(); // Fetch comments initially when the component is mounted
+        this.$nextTick(() => {
+            this.forceUpdate();
+        });
+        // Đảm bảo socket tham gia đúng room
+        socket.emit('joinPostRoom', { POST_ID: this.postId.content.POST_Id, USER_ID: this.userid });
+        socket.on('updateComments', (data) => {
+            console.log('Updated comments received:', data);
+            this.comments = data; // Cập nhật comments
+            this.textComment = ''; // Reset input
+        });
+    },
+    beforeUnmount() {
+        socket.emit('leavePostRoom', { POST_ID: this.postId.content.POST_Id, USER_ID: this.userid });
+        socket.off('updateComments');
     }, watch: {
         textComment(value) {
             this.char = value.length;
-        }, postId: {
+        },
+        postId: {
             handler(newValue) {
                 if (newValue && newValue.content && newValue.content.POST_Id) {
                     this.fetchComments();
+                    socket.emit('joinPostRoom', { POST_ID: newValue.content.POST_Id, USER_ID: this.userid });
+                    socket.on('updateComments', (data) => {
+                        console.log('Updated comments received:', data);
+                        this.comments = data; // Cập nhật comments
+                        this.textComment = ''; // Reset input
+                    });
                 }
             },
             immediate: true, // Kích hoạt khi component được mount
             deep: true, // Theo dõi thay đổi sâu trong object
         },
-    }
+    }, beforeDestroy() {
+        if (this.postId && this.postId.content && this.postId.content.POST_Id) {
+            socket.emit("leavePostRoom", { POST_ID: this.postId.content.POST_Id, USER_ID: this.userid });
+            socket.off('updateComments');
+        }
+    },
 }
 </script>
 

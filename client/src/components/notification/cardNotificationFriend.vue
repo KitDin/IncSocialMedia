@@ -56,17 +56,16 @@ export default {
                         this.isLoading = false
                         this.$emit('acceptFriend', this.notification.ref_id)
                     }
-                    console.log(add)
                 } catch (error) {
                     console.error(error)
                 }
             }, 1500)
         },
         goProfile(post) {
-            if (post.userId == this.userId) {
+            if (post.USER_Id == this.userId) {
                 this.$router.push(`/profile`)
             } else {
-                this.$router.push(`/profile/${post.userId}`)
+                this.$router.push(`/profile/${post.USER_Id}`)
             }
         },
         loadimg(post) {

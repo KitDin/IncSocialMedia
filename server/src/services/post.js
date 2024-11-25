@@ -3,6 +3,7 @@ import {
   getCombinedRecommendations,
   recommendPostsForUser,
 } from "../services/recomment.js";
+import { getUserById } from "./user.js";
 
 export async function getImgOfPostById(id) {
   try {
@@ -247,7 +248,7 @@ export async function getPosts(
   displayedPostIds = []
 ) {
   //  Lấy danh sách bài đăng gợi ý
-  const recommendedPostIds = await getCombinedRecommendations(userId);
+  const recommendedPostIds = (await getCombinedRecommendations(userId)) || [];
   const offset = (page - 1) * limit;
 
   // Danh sách bài đầy đủ sẽ trả về
@@ -519,6 +520,7 @@ export async function postReplyComments(
     return false;
   }
 }
+
 async function countComment(post_id) {
   try {
     const [count] = await pool.query(
@@ -549,6 +551,45 @@ export const getHashTagsOfPost = async (postId) => {
   try {
     const [getHastTagByPost] = await pool.query(query, [postId]);
     return getHastTagByPost.length > 0 ? getHastTagByPost : [];
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getCommentPostById = async (postId) => {
+  try {
+    // Lấy tất cả các comment của bài viết
+    const comments = await getCommentInAPost(postId);
+
+    // Sử dụng Promise.all để xử lý tất cả các comment song song
+    const fullComment = await Promise.all(
+      comments.map(async (comment) => {
+        // Lấy tất cả reply của comment hiện tại
+        const replies = await getReplyComment(
+          comment.POST_id,
+          comment.comment_id
+        );
+
+        // Xử lý thông tin reply song song
+        const reply_to_full = await Promise.all(
+          replies.map(async (reply) => {
+            const reply_to_user = await getUserById(reply.USER_id_reply_to);
+            return {
+              ...reply,
+              reply_to: reply_to_user,
+            };
+          })
+        );
+
+        // Trả về comment kèm reply
+        return {
+          comment: comment,
+          reply: reply_to_full,
+          isShowView: true,
+        };
+      })
+    );
+    return fullComment;
   } catch (error) {
     console.error(error);
   }

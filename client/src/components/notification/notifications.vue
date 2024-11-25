@@ -5,13 +5,16 @@
             <div class="notification-content" v-show="notifications && notifications.new.length > 0">
                 <h3 class="notifications-time">New</h3>
                 <div class="notifications-new" v-for="(notification, index) in notifications.new" :key="index + 1">
-                    <CardNotificationLike v-if="notification && notification.type === 'like'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationComment v-if="notification && notification.type === 'comment'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationRequestFriend
+                    <CardNotificationLike :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'like'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationComment :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'comment'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationReplyComment :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'reply_comment'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationRequestFriend :class="{ 'notification-unread': notification.status === 'unread' }"
                         v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
                         :notification="notification" :userId="userId" @acceptFriend="acceptFriend" />
 
@@ -23,13 +26,16 @@
                 <h3 class="notifications-time">This month</h3>
                 <div class="notification-this-month" v-for="(notification, index) in notifications.thisMonth"
                     :key="index">
-                    <CardNotificationLike v-if="notification && notification.type === 'like'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationComment v-if="notification && notification.type === 'comment'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationRequestFriend
+                    <CardNotificationLike :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'like'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationComment :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'comment'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationReplyComment :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'reply_comment'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationRequestFriend :class="{ 'notification-unread': notification.status === 'unread' }"
                         v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
                         :notification="notification" :userId="userId" @acceptFriend="acceptFriend" />
                 </div>
@@ -39,13 +45,16 @@
             <div class="notification-content" v-show="notifications && notifications.earlier.length > 0">
                 <h3 class="notifications-time">Earlier</h3>
                 <div class="notification-earlier" v-for="(notification, index) in notifications.earlier">
-                    <CardNotificationLike v-if="notification && notification.type === 'like'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationComment v-if="notification && notification.type === 'comment'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationReplyComment v-if="notification && notification.type === 'reply_comment'"
-                        :notification="notification" :userId="userId" @goPostDetail="goPostDetail" />
-                    <CardNotificationRequestFriend
+                    <CardNotificationLike :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'like'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationComment :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'comment'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationReplyComment :class="{ 'notification-unread': notification.status === 'unread' }"
+                        v-if="notification && notification.type === 'reply_comment'" :notification="notification"
+                        :userId="userId" @goPostDetail="goPostDetail" />
+                    <CardNotificationRequestFriend :class="{ 'notification-unread': notification.status === 'unread' }"
                         v-if="notification && notification.type === 'friend_request' || notification.type === 'friend_accept'"
                         :notification="notification" :userId="userId" @acceptFriend="acceptFriend" />
                 </div>
@@ -82,11 +91,11 @@ export default {
             } else {
                 console.error(">>> Not notifications")
             }
-            console.log(this.notifications)
         }
     },
     async mounted() {
         this.fetchNotifications(this.userId)
+        setInterval(() => { this.fetchNotifications(this.userId) }, 5000)
     }
     , props: {
         userId: { type: String }
@@ -124,6 +133,15 @@ export default {
     padding-right: 8px;
     height: 600px;
     overflow-y: scroll;
+}
+
+
+.Notification-Frame .notifications .notification-content .notifications-time {
+    font-size: 18px;
+}
+
+.notification-unread {
+    background-color: rgba(255, 247, 175, 0.224);
 }
 
 @-webkit-keyframes scale-in-hor-left {

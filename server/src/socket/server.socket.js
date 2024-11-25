@@ -6,6 +6,11 @@ import {
   searchingUser,
   updateUnreadMessagesInConversation,
 } from "../services/chatting.js";
+import {
+  createComment,
+  getCommentPostById,
+  postReplyComments,
+} from "../services/post.js";
 
 export function socket_server(io) {
   const userConversations = {};
@@ -75,7 +80,8 @@ export function socket_server(io) {
     socket.on("searchUser", async ({ searchQuery, userId }) => {
       try {
         // Thực hiện tìm kiếm người dùng trong database với query
-        const searchResults = await searchingUser(searchQuery, userId);
+        console.log(searchQuery);
+        const searchResults = (await searchingUser(searchQuery, userId)) || [];
         // Gửi kết quả tìm kiếm trở lại client
         socket.emit("searchResults", searchResults);
       } catch (error) {
@@ -101,6 +107,58 @@ export function socket_server(io) {
           delete userConversations[userId];
         }
       }
+    });
+
+    socket.on("joinPostRoom", ({ POST_ID, USER_ID }) => {
+      socket.join(POST_ID); // Join vào "room" bài đăng
+      console.log(`User ${USER_ID} joined post ${POST_ID}`);
+    });
+
+    socket.on("submitComment", async (data) => {
+      try {
+        const {
+          POST_id,
+          comment_id,
+          comment_Content,
+          replyComment,
+          USER_id,
+          USER_id_reply_to,
+          CommentReply_id,
+          CommentReply_Content,
+        } = data;
+
+        let result;
+
+        // Kiểm tra dữ liệu và thực hiện thêm mới comment/reply
+        if (replyComment) {
+          result = await postReplyComments(
+            POST_id,
+            replyComment,
+            USER_id,
+            USER_id_reply_to,
+            CommentReply_id,
+            CommentReply_Content
+          );
+        } else {
+          result = await createComment(
+            comment_id,
+            POST_id,
+            USER_id,
+            comment_Content
+          );
+        }
+        if (result) {
+          const comments = await getCommentPostById(POST_id);
+          io.to(POST_id).emit("updateComments", comments);
+        }
+      } catch (error) {
+        console.error("Error handling submitComment:", error);
+      }
+    });
+
+    socket.on("leavePostRoom", ({ POST_ID, USER_ID }) => {
+      socket.leave(POST_ID); // Rời khỏi "room" bài đăng
+      console.log(`User ${USER_ID} left post ${POST_ID}`);
     });
   });
 }

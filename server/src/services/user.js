@@ -113,11 +113,11 @@ export async function setInforUser(
   USER_NumberPhone,
   USER_BirthDay,
   USER_Bio,
-  USER_Sex
+  USER_Gender
 ) {
   const insertInfor = `INSERT INTO __user_infor
     (USER_Id,USER_FirstName ,USER_SubName ,USER_NickName ,
-    USER_NumberPhone ,USER_AvatarURL ,USER_BrithDay,USER_Bio ) 
+    USER_AvatarURL ,USER_BrithDay,USER_Bio,USER_Gender ) 
     VALUES (?,?,?,?,?,?,?,?)`;
   try {
     const [INSERT] = await pool.query(insertInfor, [
@@ -125,14 +125,15 @@ export async function setInforUser(
       USER_FirstName,
       USER_SubName,
       USER_NickName,
-      USER_NumberPhone,
       USER_AvatarURL,
       USER_BirthDay,
       USER_Bio,
+      USER_Gender,
     ]);
-    return INSERT.USER_FirstName;
+    return INSERT.USER_FirstName ? INSERT.USER_FirstName : false;
   } catch (error) {
     console.error(error);
+    return false;
   }
 }
 

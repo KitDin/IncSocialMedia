@@ -29,8 +29,6 @@
                         </div>
                         <div class="pc-infor-social">
                             <p class="posts"><b>{{ posts.length }}</b> posts</p>
-
-
                             <p class="followers"><b>{{ user_other.friendRequests.length
                                     }}</b> followers</p>
                             <p class="friends"><b>{{ user_other.listFriend.length }}</b>
@@ -150,8 +148,6 @@ export default {
     }, methods: {
         acceptFriend(id) { this.numOfRequest--, this.numOfFriend++ },
         async makeNewPost() {
-            console.log(">> make new in profile");
-            // await this.fetchData()
         },
         updateNumOfFriend(opiton) {
             switch (opiton) {
@@ -207,7 +203,7 @@ export default {
                     }, 50);
                 }, 1500)
             } else {
-                console.log("that");
+                console.error
             }
         }
         , async addFriend(id, toUser) {

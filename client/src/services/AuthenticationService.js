@@ -126,5 +126,13 @@ export default {
   },
   getAllNotification(id) {
     return Api().get(`/notifications/all/${id}`);
+  },
+  getQuantifierNotification(id) {
+    return Api().post(`/notifications/all/${id}`);
+  },
+  updateAllNotification(id, statusUpdate = "read", statusCurrent = "unread") {
+    return Api().put(`/notifications/all/${id}`, {
+      params: { statusUpdate: statusUpdate, statusCurrent: statusCurrent }
+    });
   }
 };

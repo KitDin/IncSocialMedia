@@ -135,7 +135,7 @@ export default {
             } else {
                 console.error(req.message)
             }
-        }, cancelFollwoing() { console.log(">>> hello") },
+        }, cancelFollwoing() { },
         openAlert(data, type, optionAlert = 2) {
             this.dataAlert = data
             this.action = type
@@ -223,7 +223,6 @@ export default {
             }
         }, async becomeFriend(toUser) {
             try {
-                console.log(">>>", toUser)
                 const add = (await AuthenticationService.addAFrient(this.idUser, {
                     USER_SENDERID: toUser.USER_Id,
                     USER_RECID: this.idUser

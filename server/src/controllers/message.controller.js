@@ -59,6 +59,7 @@ export async function getConversationsOffAUser(req, res) {
     if (encodedConversationID) {
       const conversationId = decodeBase64(encodedConversationID);
       const messages = await getMessages(conversationId);
+
       if (messages) {
         messages.reverse();
         // Phân trang cho tin nhắn
@@ -89,25 +90,47 @@ export async function getConversationsOffAUser(req, res) {
         });
       }
     } else {
-      const [conversations] = await getConversationOfAUser(userId);
-
       // Duyệt qua từng hội thoại và kiểm tra trạng thái chưa đọc
-      const conversationsWithUnreadStatus = [];
-      for (const conversation of conversations) {
-        const isUnread = await getMessagesUnreadByConversationId(
-          conversation.CON_ID,
-          userId
-        );
-        conversationsWithUnreadStatus.push({
-          ...conversation,
-          isUnread: isUnread, // Thêm trạng thái chưa đọc vào từng hội thoại
-        });
-      }
+      try {
+        console.log({ userId });
+        const [conversations] = (await getConversationOfAUser(userId)) || [];
+        if (!Array.isArray(conversations)) {
+          console.error("getConversationOfAUser did not return an array");
+          return res.json({});
+        }
+        console.log(">>>>>", conversations);
+        const conversationsWithUnreadStatus = [];
 
-      res.json(conversationsWithUnreadStatus);
+        for (const conversation of conversations) {
+          try {
+            const isUnread = await getMessagesUnreadByConversationId(
+              conversation.CON_ID,
+              userId
+            );
+            conversationsWithUnreadStatus.push({
+              ...conversation,
+              isUnread,
+            });
+          } catch (unreadError) {
+            console.error(
+              "Error fetching unread status for conversation:",
+              conversation.CON_ID,
+              unreadError
+            );
+            conversationsWithUnreadStatus.push({
+              ...conversation,
+              isUnread: false, // Giả định là không có tin nhắn chưa đọc nếu gặp lỗi
+            });
+          }
+        }
+
+        res.json(conversationsWithUnreadStatus);
+      } catch (error) {
+        res.status(500).json({ error: "conversations" });
+      }
     }
   } catch (error) {
-    res.status(500).json({ error: "An error occurred" });
+    res.status(500).json({ error: "conversations of get conversation" });
   }
 }
 

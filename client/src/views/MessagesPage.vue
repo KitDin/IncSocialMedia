@@ -10,7 +10,7 @@
                 <input class="input-search" type="text" placeholder="Tìm kiếm hội thoại ..." @input="searchConversation"
                     v-model="searchQuery">
                 <p class="Title">Messages</p>
-                <div v-if="conversations" class="List">
+                <div v-if="conversations.length > 0" class="List">
 
                     <div v-if="!isNull" class="User" v-for="conversation in conversations" :key="conversation.CON_ID"
                         @click="getAllMessagesInAConversation(conversation.CON_ID, conversation.USER_ID)"
@@ -56,12 +56,12 @@
 
                 <div v-else class="List">
 
-                    <div class="noticeList">
+                    <div class="noticeList" @click="">
                         <p class="any">You don't have any!</p>
 
                         <i class="bi bi-send-plus iconList"></i>
 
-                        <div class="Your-messagesList">Start</div>
+                        <div class="Your-messagesList" @click="isShowCreate = !isShowCreate">Start</div>
                     </div>
 
 
@@ -272,12 +272,11 @@ export default {
         },
         async handleDeleteConversation(conversationId) {
             // Xử lý logic xóa cuộc trò chuyện ở đây
-            console.log({ "conversationId": conversationId })
             const delCon = (await AuthenticationService.deleteConversation(this.currentUserId, { "conversationId": conversationId })).data;
             if (delCon.status) {
                 this.conversations = (await AuthenticationService.getConversations(this.currentUserId)).data;
                 this.activeConversationId = null;
-            } else alert("Xoá thất bại rồi")
+            }
         },
         async createNewConversation(conId, userReceiv) {
             this.getAllMessagesInAConversation(conId, userReceiv)
@@ -315,7 +314,6 @@ export default {
         async sendMessage() {
             if (this.newMessage.trim() !== "") {
                 socket.emit('sendMessage', { MESSAGE: this.newMessage, SENDER_ID: this.currentUserId, CON_ID: this.conversationId, RECEIVER_ID: this.receiverUserId.USER_Id, CREATED_AT: new Date(), chenh: null });
-                console.log({ MESSAGE: this.newMessage, SENDER_ID: this.currentUserId, CON_ID: this.conversationId, RECEIVER_ID: this.receiverUserId.USER_Id, CREATED_AT: new Date(), chenh: null })
                 this.newMessage = "";
                 this.loadTime();
                 this.scrollToEnd();
@@ -583,17 +581,16 @@ export default {
                 // Nếu token không hợp lệ, điều hướng đến trang đăng nhập
                 localStorage.removeItem("token");
                 this.$router.push("/");
-                console.log(">>> đi khôn hipw")
 
             }
             this.currentUserId = response.data.userId
         } else {
             // Nếu không có token, điều hướng đến trang đăng nhập
-            console.log(">>> đi")
             this.$router.push("/");
         }
+
         this.currentUser = (await AuthenticationService.getUser(this.currentUserId)).data;
-        this.conversations = (await AuthenticationService.getConversations(this.currentUserId)).data;
+        this.conversations = ((await AuthenticationService.getConversations(this.currentUserId)).data) || [];
         this.loadTime();
         this.scrollToEnd();
 
@@ -602,6 +599,7 @@ export default {
                 this.conversations = (await AuthenticationService.getConversations(this.currentUserId)).data;
             }
         }, 5000);
+
         socket.on('newMessage', (message) => {
             this.messages.push(message);
             this.loadTime();

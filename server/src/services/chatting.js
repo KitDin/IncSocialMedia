@@ -66,7 +66,8 @@ export const saveMessage = async (conId, senderId, message) => {
 };
 
 export async function getConversationOfAUser(userID) {
-  const sqlGetConversation = `SELECT 
+  try {
+    const sqlGetConversation = `SELECT 
     c.CON_ID, 
     c.CON_TIMECREATE, 
     cu2.USER_ID,
@@ -93,9 +94,15 @@ WHERE
 ORDER BY 
     m.CREATED_AT DESC;`;
 
-  const [result] = await pool.query(sqlGetConversation, [userID, userID]);
-  if (result.length > 0) {
-    return [result];
+    const [result] = await pool.query(sqlGetConversation, [userID, userID]);
+    if (result.length > 0) {
+      return [result];
+    } else {
+      console.error;
+      return [];
+    }
+  } catch (error) {
+    console.error;
   }
 }
 
@@ -113,6 +120,56 @@ export async function getMessages(conid) {
     return false;
   }
 }
+
+// export async function searchingUser(searchQuery, userId) {
+//   try {
+//     const [searchResults] = await pool.query(
+//       `
+//         SELECT USER_ID, USER_FIRSTNAME, USER_SUBNAME, USER_NICKNAME, USER_AVATARURL
+//         FROM __USER_INFOR
+//         WHERE LOWER(USER_FIRSTNAME) LIKE LOWER(?)
+//         OR LOWER(USER_SUBNAME) LIKE LOWER(?)
+//         OR LOWER(USER_NICKNAME) LIKE LOWER(?)
+//       `,
+//       [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
+//     );
+
+//     // Lọc bỏ người dùng có ID trùng với userId
+//     const filteredResults = searchResults.filter(
+//       (result) => result.USER_ID !== userId
+//     );
+
+//     // Lấy danh sách ID bạn bè
+//     const friends = await ListFriend(userId);
+//     const friendIds = friends.map((friend) => friend.friend_user_id);
+
+//     // Lấy danh sách người dùng mà userId đã trò chuyện
+//     const conversationsOfUser = await getConversationOfAUser(userId);
+//     const usersIdChatting = conversationsOfUser[0].map((conversation) => {
+//       return conversation.USER_ID;
+//     });
+
+//     // Lọc bỏ những người dùng đã trò chuyện với userId
+//     const resultHadChatting = filteredResults.filter((result) => {
+//       return !usersIdChatting.some(
+//         (userIdChatting) => result.USER_ID === userIdChatting
+//       );
+//     });
+
+//     // Tạo mảng kết quả cuối cùng với thuộc tính isFriend
+//     const finalResults = resultHadChatting.map((result) => {
+//       const isFriend = friendIds.includes(result.USER_ID);
+//       return { ...result, isFriend };
+//     });
+
+//     // Sắp xếp kết quả cuối cùng để bạn bè xuất hiện đầu tiên
+//     finalResults.sort((a, b) => b.isFriend - a.isFriend);
+
+//     return finalResults;
+//   } catch (error) {
+//     console.error(error);
+//   }
+// }
 
 export async function searchingUser(searchQuery, userId) {
   try {
@@ -138,9 +195,11 @@ export async function searchingUser(searchQuery, userId) {
 
     // Lấy danh sách người dùng mà userId đã trò chuyện
     const conversationsOfUser = await getConversationOfAUser(userId);
-    const usersIdChatting = conversationsOfUser[0].map((conversation) => {
-      return conversation.USER_ID;
-    });
+
+    // Kiểm tra conversationsOfUser và conversationsOfUser[0] có phải là mảng không
+    const usersIdChatting = Array.isArray(conversationsOfUser[0])
+      ? conversationsOfUser[0].map((conversation) => conversation.USER_ID)
+      : []; // Nếu không phải mảng, trả về mảng rỗng
 
     // Lọc bỏ những người dùng đã trò chuyện với userId
     const resultHadChatting = filteredResults.filter((result) => {

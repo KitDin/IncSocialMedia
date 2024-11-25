@@ -27,7 +27,11 @@ import {
   getConversationUnread,
   getMessagesUnreadByConversationId,
 } from "../services/chatting.js";
-import { getNotificationsByUserId } from "../services/notification.js";
+import {
+  getNotificationsByUserId,
+  getNumberNotificationUnread,
+  updateNotification,
+} from "../services/notification.js";
 import {
   getImgOfPostById,
   getInfoCommentById,
@@ -56,22 +60,30 @@ export async function getUserController(req, res) {
 }
 
 function isUsernameValid(username) {
+  // Kiểm tra độ dài từ 8 đến 16 ký tự
   if (username.length < 8 || username.length > 16) {
     return false;
   }
 
-  if (!/[A-Z]/.test(username)) {
+  // Kiểm tra chỉ chứa các chữ cái
+  if (!/^[A-Za-z]+$/.test(username)) {
     return false;
   }
 
-  if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\]/.test(username)) {
+  return true;
+}
+
+function validatePassword(password) {
+  if (password.length < 8) {
     return false;
   }
-
-  if (!/\d/.test(username)) {
+  if (
+    !/[A-Z]/.test(password) ||
+    !/\d/.test(password) ||
+    !/[!@#$%^&*]/.test(password)
+  ) {
     return false;
   }
-
   return true;
 }
 
@@ -92,27 +104,26 @@ export async function register(req, res) {
       return res.json({
         status: "error",
         error: `
-          Email have to @gmail.com,Pls!`,
+          Email have to @gmail.com, Pls !.`,
       });
     }
     if (!isUsernameValid(USER_AccountName)) {
       return res.json({
         status: "error",
-        error: `
-          Username is invalid`,
+        error: `Username is invalid !.`,
       });
     } else {
-      if (USER_Password.length < 8) {
+      if (!validatePassword(USER_Password)) {
         return res.json({
           status: "error",
-          error: "Password is soo low",
+          error: "Weak password. Try a stronger one.",
         });
       } else {
         const samePassword = USER_Password === repassword;
         if (!samePassword) {
           return res.json({
             status: "error",
-            error: "Lets enter to same password!",
+            error: "Please enter the same password!",
           });
         } else {
           const getUser = await getAccountName_Email(
@@ -122,7 +133,8 @@ export async function register(req, res) {
           if (getUser) {
             return res.json({
               status: "error",
-              error: "User or email existed",
+              error:
+                "We couldn't process your request. Please verify your information.",
             });
           } else {
             const create = await createUser(
@@ -132,6 +144,7 @@ export async function register(req, res) {
               USER_Password,
               USER_UpdateAt
             );
+            console.log(create);
             if (create) {
               return res.json({
                 status: "successful",
@@ -157,10 +170,10 @@ export async function registerInfor(req, res) {
     USER_NumberPhone,
     USER_BirthDay,
     USER_Bio,
-    USER_Sex,
+    USER_Gender,
   } = req.body;
   try {
-    await setInforUser(
+    const check = await setInforUser(
       file,
       USER_Id,
       USER_NickName,
@@ -169,15 +182,15 @@ export async function registerInfor(req, res) {
       USER_NumberPhone,
       USER_BirthDay,
       USER_Bio,
-      USER_Sex
+      USER_Gender
     );
-    return res.json({
+
+    res.json({
       status: "successful",
     });
   } catch (error) {
     console.log(error);
   }
-  console.log(req.body, file);
 }
 
 export async function login(req, res) {
@@ -282,10 +295,8 @@ export const getConversationUnreadController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Kiểm tra giá trị trả về của getConversationOfAUser
     const conversationsData = await getConversationOfAUser(id);
 
-    // Đảm bảo rằng conversationsData là một mảng và có phần tử đầu tiên là mảng
     const conversations = Array.isArray(conversationsData)
       ? conversationsData[0]
       : [];
@@ -424,6 +435,37 @@ export const getNotificationsOfUser = async (req, res) => {
     return res.json({ status: true, notifications: groupedNotifications });
   } catch (error) {
     console.error("Error fetching notifications:", error);
+    res.status(500).json({ status: false });
+  }
+};
+
+export const getNumberNotificationUnreadController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const getNum = await getNumberNotificationUnread(id);
+    if (getNum) {
+      res.json({ status: true, quantifier: getNum[0].quantifier });
+    } else {
+      res.json({ status: false });
+    }
+  } catch (error) {
+    console.error(
+      "Error fetching getNumberNotificationUnreadController:",
+      error
+    );
+    res.status(500).json({ status: false });
+  }
+};
+
+export const updateNotificationController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { statusUpdate = "read", statusCurrent = "unread" } = req.query;
+    const update = await updateNotification(id, statusUpdate, statusCurrent);
+    if (update) return res.json({ status: true, statusUpdate, statusCurrent });
+    res.json({ status: false });
+  } catch (error) {
+    console.error("Error fetching updateNotificationController:", error);
     res.status(500).json({ status: false });
   }
 };

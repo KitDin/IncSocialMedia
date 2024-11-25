@@ -112,7 +112,6 @@ export default {
     methods: {
         acceptFriend(id) {
             this.userIdAcceptTrueInRequest = id
-            console.log(">>>> home acceptFriend", id)
         },
         handleScroll() {
             const container = this.$refs.scrollContainer;
@@ -129,13 +128,7 @@ export default {
                 this.fetchPosts(this.currentPage, this.limitPage);
             }
         },
-
         async makeNewPost() {
-            console.log(">> make new in homepage");
-            // await this.fetchPosts()
-        },
-        test(post) {
-            console.log(post);
         },
         async toggleHeart(postAll) {
             if (this.posts) {
